@@ -8,6 +8,6 @@
       * Video 13B
       * Video 14B_2
 ## Tool used
-   The tool used in this project is labelimg
+   labelimg
    
 
