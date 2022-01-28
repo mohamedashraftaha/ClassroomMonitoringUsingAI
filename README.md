@@ -1,5 +1,5 @@
 # Classroom Monitoring Using AI - Labelling
-# Description
+### Description
    This repo consists of the labelled bounded boxes of our generated dataset
    * Videos Required
       * Video 6B
@@ -7,7 +7,7 @@
       * Video 8A 
       * Video 13B
       * Video 14B_2
-## Tool used
-   labelimg
+### Tool used
+   * labelimg
    
 
