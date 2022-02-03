@@ -10,6 +10,21 @@ Department of Computer Science and Engineering
    * Dr. Sherif Aly
    * Dr. Hesham Eraqi
 
+## Team Members
+   * Noha Abdelkader
+      * Undergraduate Graduating senior student at The American University in Cairo
+   * Mohamed Ashraf Taha 
+      * Undergraduate Graduating senior student at The American University in Cairo
+   * Marwan Awad 
+      * Undergraduate Graduating senior student at The American University in Cairo
+   * Mohamed Elshabshiri 
+      * Undergraduate Graduating senior student at The American University in Cairo
+   * Omar Mahdy
+      * Undergraduate Graduating senior student at The American University in Cairo
+   * Youssef Beshir
+      * Undergraduate Graduating senior student at The American University in Cairo
+   
+   
 
 ## Problem Statement
    Based on our research we found that The increasing rates of cheating during examinations in Egypt, that results in an unfair educational experience.
@@ -17,8 +32,7 @@ Department of Computer Science and Engineering
 ## Proposed Solution
    Developing a classroom monitoring system using AI to detect possible cheating incidents during examinations that creates fair and safe examination environment 
 
-### Tool used
-   * labelimg
+
   
 
    
