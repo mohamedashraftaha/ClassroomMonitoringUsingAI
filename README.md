@@ -11,8 +11,12 @@ Department of Computer Science and Engineering
    * Dr. Hesham Eraqi
 
 
-### Description
-   This repo consists the full implementation of our thesis project titled "Classroom Monitoring Using AI"
+### Problem Statement
+   Based on our research we found that The increasing rates of cheating during examinations in Egypt, that results in an unfair educational experience.
+   
+### Proposed Solution
+   Developing a classroom monitoring system using AI to detect possible cheating incidents during examinations that creates fair and safe examination environment 
+
 ### Tool used
    * labelimg
   
