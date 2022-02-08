@@ -1,4 +1,0 @@
-NotePassing
-HeadMovement
-MobilePhone
-Proctor
