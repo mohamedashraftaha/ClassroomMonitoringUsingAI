@@ -1,0 +1,17 @@
+certifi==2021.10.8
+charset-normalizer==2.0.12
+click==8.0.4
+Flask==2.0.3
+Flask-SQLAlchemy==2.5.1
+greenlet==1.1.2
+idna==3.3
+itsdangerous==2.1.2
+Jinja2==3.1.0
+MarkupSafe==2.1.1
+mysqlclient==2.1.0
+PyMySQL==1.0.2
+python-dotenv==0.20.0
+requests==2.27.1
+SQLAlchemy==1.4.32
+urllib3==1.26.9
+Werkzeug==2.0.3
