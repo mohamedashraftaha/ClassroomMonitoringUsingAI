@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.exc import SQLAlchemyError
 import hashlib, MySQLdb
-
+from userDefinedExceptions import *
 # configuration of the app
 app=Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -27,10 +27,8 @@ examincidents = Base.classes.examIncidents
 #this variable will be used to store passwords in the DB
 salt = None
 
-## error handling
-@app.errorhandler(404)
-def not_found(error):
-    return json.dumps({'status': 'fail', 'message': 'Not found'}), 404
+
+    
 
 @app.route('/registerAdmin',methods=['POST'])
 def registerAdmin():
@@ -59,6 +57,7 @@ def registerAdmin():
 
     return json.dumps({'status': 'Success', 'message': "Administrator Added Successfully!"})
 
+################################################################
 @app.route('/registerProctor',methods=['POST'])
 def registerProctor():
     
@@ -85,7 +84,55 @@ def registerProctor():
             print(e.args    )
             return json.dumps({'status': 'fail', 'message': "User Already Exists"})
 
-    return json.dumps({'status': 'Success', 'message': "Administrator Added Successfully!"})
+    return json.dumps({'status': 'Success', 'message': "Proctor Added Successfully!"})
+###########################################################################
+@app.route('/loginAdmin',methods=['POST'])
+def loginAdmin():
+    if request.method == "POST":
+        """ @API Description: This API is used to login an admininstrator to the system """
+        #getting the request parameters
+        NationalID = request.form['national_id']
+        password = request.form['password']
+        if "national_id" not in request.form or "password" not in request.form:
+                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        try:
+            salt = password + app.config['SECRET_KEY']
+            db_pass = hashlib.md5(salt.encode()).hexdigest()
+            user =db.session.query(Admin).filter_by(NationalID=NationalID).first()
+            if user is None:
+                raise NotFound
+            if db_pass != user.passwd:
+                raise NotFound
+        except NotFound:
+            return json.dumps({'status': 'fail', 'message': "User Not Found"})
+        except sqlalchemy.exc.IntegrityError as e:
+            return json.dumps({'status': 'fail', 'message': "User Already Exists"})
+
+    return json.dumps({'status': 'Success', 'message': "Admin logged in successfully!"})
+######################################################################
+@app.route('/loginProctor',methods=['POST'])
+def loginProctor():
+    """ @API Description: This API is used to login an Proctor to the system """
+    if request.method == "POST":
+        #getting the request parameters
+        NationalID = request.form['national_id']
+        password = request.form['password']
+        if "national_id" not in request.form or "password" not in request.form:
+                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        try:
+            salt = password + app.config['SECRET_KEY']
+            db_pass = hashlib.md5(salt.encode()).hexdigest()
+            user =db.session.query(proctor).filter_by(NationalID=NationalID).first()
+            if user is None:
+                raise NotFound
+            if db_pass != user.passwd:
+                raise NotFound
+        except NotFound:
+            return json.dumps({'status': 'fail', 'message': "User Not Found"})
+        except sqlalchemy.exc.IntegrityError as e:
+            return json.dumps({'status': 'fail', 'message': "User Already Exists"})
+
+    return json.dumps({'status': 'Success', 'message': "Proctor logged in successfully!"})
 
 
 if __name__ == '__main__':
