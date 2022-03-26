@@ -42,14 +42,16 @@ def registerAdmin():
     """ @API Description: This API is used to reguister an admininstrator to the system """
     if request.method == "POST":
         #getting the request parameters
-        NationalID = request.form['national_id']
-        password = request.form['password']
-        FirstName = request.form['first_name']
-        LastName = request.form['last_name']
-        position = request.form['position']
-        if "national_id" not in request.form or "password" not in request.form or "first_name" not in request.form \
-            or "last_name" not in request.form or  "position" not in request.form:
-                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        data = request.json
+    
+        try:
+            NationalID = data['national_id']
+            password = data['password']
+            FirstName = data['first_name']
+            LastName = data['last_name']
+            position = data['position']
+        except KeyError:
+                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})        
         try:
             salt = password + app.config['SECRET_KEY']
             db_pass = hashlib.md5(salt.encode()).hexdigest()
@@ -67,11 +69,13 @@ def registerAdmin():
 def loginAdmin():
     """ @API Description: This API is used to login an admininstrator to the system """  
     if request.method == "POST":
-        #getting the request parameters
-        NationalID = request.form['national_id']
-        password = request.form['password']
-        if "national_id" not in request.form or "password" not in request.form:
-                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        
+        data = request.json
+        try:
+            NationalID = data['national_id']
+            password = data['password']
+        except KeyError:
+                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})        
         try:
             salt = password + app.config['SECRET_KEY']
             db_pass = hashlib.md5(salt.encode()).hexdigest()
@@ -92,15 +96,15 @@ def loginAdmin():
 def createExamInstance():
     if request.method == "POST":
         #getting the request parameters
-        ExamRoomID = request.form['examroom_id']
-        ExamID = request.form['exam_id']
-        SchoolName = request.form['school_name']
-        adminNatID = request.form['admin_national_id']
-        if "examroom_id" not in request.form or "exam_id" not in request.form or "school_name" not in request.form\
-            or "admin_national_id" not in request.form:
-                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        data = request.json
         try:
-            
+            ExamRoomID = data['examroom_id']
+            ExamID = data['exam_id']
+            SchoolName = data['school_name']
+            adminNatID = data['admin_national_id']
+        except KeyError:
+                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})          
+        try:
             # admin not found
             user =db.session.query(Admin).filter_by(NationalID=adminNatID).first()
             if user is None:
@@ -123,11 +127,14 @@ def createExamInstance():
 def assignproctor_to_exam():
     if request.method == "POST":
         #getting the request parameters
-        adminNatID = request.form['admin_national_id']
-        proctorNatID = request.form['proctor_national_id']
-        AssignedExamRoomID = request.form['exam_room_id']
-        if "admin_national_id" not in request.form or "proctor_national_id" not in request.form or "exam_room_id" not in request.form:
-                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        data = request.json
+        try:   
+            adminNatID = data['admin_national_id']
+            proctorNatID = data['proctor_national_id']
+            AssignedExamRoomID = data['exam_room_id']
+        except KeyError:
+            json.dumps({'status': 'Success', 'message': "exam instance created Successfully!"})
+
         try:
             
             # admin not found
@@ -166,15 +173,18 @@ def assignproctor_to_exam():
 def registerProctor():
     """ @API Description: This API is used to register an invigilator to the system """
     if request.method == "POST":
-        #getting the request parameters
-        NationalID = request.form['national_id']
-        password = request.form['password']
-        FirstName = request.form['first_name']
-        LastName = request.form['last_name']
-        SchoolName = request.form['school_name']
-        if "national_id" not in request.form or "password" not in request.form or "first_name" not in request.form \
-            or "last_name" not in request.form or  "school_name" not in request.form:
-                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        #getting the request parameters        
+        data = request.json
+        try:   
+            NationalID = data['national_id']
+            password = data['password']
+            FirstName = data['first_name']
+            LastName = data['last_name']
+            SchoolName = data['school_name']
+
+        except KeyError:
+            json.dumps({'status': 'Success', 'message': "exam instance created Successfully!"})
+
         try:
             salt = password + app.config['SECRET_KEY']
             db_pass = hashlib.md5(salt.encode()).hexdigest()
@@ -195,10 +205,14 @@ def loginProctor():
     """ @API Description: This API is used to login an Proctor to the system """
     if request.method == "POST":
         #getting the request parameters
-        NationalID = request.form['national_id']
-        password = request.form['password']
-        if "national_id" not in request.form or "password" not in request.form:
-                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        data = request.json
+        try:   
+            NationalID = data['national_id']
+            password = data['password']
+        
+        except KeyError:
+            json.dumps({'status': 'Success', 'message': "exam instance created Successfully!"})
+
         try:
             salt = password + app.config['SECRET_KEY']
             db_pass = hashlib.md5(salt.encode()).hexdigest()
@@ -220,10 +234,14 @@ def CreateIncident():
     
     if request.method == "POST":
         #getting the request parameters
-        ExamRoomID = request.form['examroom_id']
-        state = request.form['stat']
-        if  "stat" not in request.form or "examroom_id"not in request.form:
-                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        
+        data = request.json
+        try:   
+            ExamRoomID = data['examroom_id']
+            state = data['stat']
+        
+        except KeyError:
+            json.dumps({'status': 'Success', 'message': "exam instance created Successfully!"})
         try:
            erid = db.session.query(ExamRoom).filter_by(ExamroomID= ExamRoomID)
            if erid is None:
@@ -245,10 +263,13 @@ def AddIncidentframes():
     
     if request.method == "POST":
         #getting the request parameters
-        IncidentID = request.form['IncidentID']
-        
-        if  IncidentID not in request.form:
-                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        data = request.json
+        try:
+     
+            IncidentID =data['IncidentID']
+        except KeyError:
+            return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+            
         try:
             client=boto3.client('s3',aws_access_key_id=access_key,aws_secret_access_key=secret_access_key)
             for file in os.listdir():
