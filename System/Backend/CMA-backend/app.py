@@ -1,8 +1,10 @@
 from re import S
 import re
-from flask import Flask, jsonify,redirect,url_for,render_template,request
+from flask import Flask, jsonify,redirect, session,url_for,render_template,request
 import sqlalchemy, json,secrets
 from flask_sqlalchemy import SQLAlchemy
+import boto3
+import os
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.exc import SQLAlchemyError
 import hashlib, MySQLdb
@@ -211,8 +213,56 @@ def loginProctor():
             return json.dumps({'status': 'fail', 'message': "User Already Exists"})
 
     return json.dumps({'status': 'Success', 'message': "Proctor logged in successfully!"})
+######################################################################
+@app.route('/CreateIncident',methods=['POST'])
+def CreateIncident():
+    """ @API Description: This API is used to CreateIncident """
+    
+    if request.method == "POST":
+        #getting the request parameters
+        ExamRoomID = request.form['examroom_id']
+        state = request.form['stat']
+        if  "stat" not in request.form or "examroom_id"not in request.form:
+                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        try:
+           erid = db.session.query(ExamRoom).filter_by(ExamroomID= ExamRoomID)
+           if erid is None:
+                raise NotFound
+           newincident=examincidents(stat=state, ExamroomID= ExamRoomID)
+           db.session.add(newincident)
+           db.session.commit()
+        except NotFound:
+            return json.dumps({'status': 'fail', 'message': "Invalid!"})
+        except sqlalchemy.exc.IntegrityError as e:
+            print(e.args)
+            return json.dumps({'status': 'fail', 'message': "Incident Already Exists or not found"})
 
+    return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
+######################################
+@app.route('/AddIncidentframes',methods=['POST'])
+def AddIncidentframes():
+    """ @API Description: This API is used to add frames """
+    
+    if request.method == "POST":
+        #getting the request parameters
+        IncidentID = request.form['IncidentID']
+        
+        if  IncidentID not in request.form:
+                return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+        try:
+            client=boto3.client('s3',aws_access_key_id=access_key,aws_secret_access_key=secret_access_key)
+            for file in os.listdir():
+                if '.jpg' in file:
+                    bucket='classroommonitoring'
+                    bucket_file_path='jpg/'+str(file)
+                    client.upload_file(file,bucket,bucket_file_path)  
+        except NotFound:
+            return json.dumps({'status': 'fail', 'message': "Invalid!"})
+        except sqlalchemy.exc.IntegrityError as e:
+            print(e.args)
+            return json.dumps({'status': 'fail', 'message': "Incident Already Exists or not found"})
 
+    return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
 if __name__ == '__main__':
     #DEBUG is SET to TRUE. CHANGE FOR PROD
     app.run(debug=True)
