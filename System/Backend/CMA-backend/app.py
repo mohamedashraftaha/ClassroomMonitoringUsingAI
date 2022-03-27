@@ -257,31 +257,58 @@ def CreateIncident():
 
     return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
 ######################################
-@app.route('/AddIncidentframes',methods=['POST'])
-def AddIncidentframes():
-    """ @API Description: This API is used to add frames """
+@app.route('/Dismiss',methods=['POST'])
+def Dismiss():
+    """ @API Description: This API is used to update status to Not cheating """
     
     if request.method == "POST":
         #getting the request parameters
         data = request.json
         try:
-     
-            IncidentID =data['IncidentID']
+            
+            Incident = data['IncidentID']
+
         except KeyError:
             return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
             
         try:
-            client=boto3.client('s3',aws_access_key_id=access_key,aws_secret_access_key=secret_access_key)
-            for file in os.listdir():
-                if '.jpg' in file:
-                    bucket='classroommonitoring'
-                    bucket_file_path='jpg/'+str(file)
-                    client.upload_file(file,bucket,bucket_file_path)  
+            db.session.query(examincidents).\
+            filter_by(IncidentID=Incident).\
+            update({'stat':'NC'})
+            db.session.commit()
+
         except NotFound:
             return json.dumps({'status': 'fail', 'message': "Invalid!"})
         except sqlalchemy.exc.IntegrityError as e:
             print(e.args)
-            return json.dumps({'status': 'fail', 'message': "Incident Already Exists or not found"})
+            return json.dumps({'status': 'fail', 'message': "Incident Already marked or not found"})
+
+    return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
+@app.route('/Report',methods=['POST'])
+def Report():
+    """ @API Description: This API is used to update status to  cheating """
+    
+    if request.method == "POST":
+        #getting the request parameters
+        data = request.json
+        try:
+            
+            Incident = data['IncidentID']
+
+        except KeyError:
+            return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+            
+        try:
+            db.session.query(examincidents).\
+            filter_by(IncidentID=Incident).\
+            update({'stat':'C'})
+            db.session.commit()
+
+        except NotFound:
+            return json.dumps({'status': 'fail', 'message': "Invalid!"})
+        except sqlalchemy.exc.IntegrityError as e:
+            print(e.args)
+            return json.dumps({'status': 'fail', 'message': "Incident Already marked or not found"})
 
     return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
 if __name__ == '__main__':
