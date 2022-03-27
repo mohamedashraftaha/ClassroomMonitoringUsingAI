@@ -9,6 +9,13 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.exc import SQLAlchemyError
 import hashlib, MySQLdb
 from userDefinedExceptions import *
+from s3 import access_key,secret_access_key
+from boto3.session import Session
+from botocore.exceptions import ClientError
+from botocore.client import Config
+import logging
+import os
+import boto3
 # configuration of the app
 app=Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -309,6 +316,60 @@ def Report():
         except sqlalchemy.exc.IntegrityError as e:
             print(e.args)
             return json.dumps({'status': 'fail', 'message': "Incident Already marked or not found"})
+
+    return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
+@app.route('/AddFrames',methods=['POST'])
+def AddFrames():
+    """ @API Description: This API is used to upload the frames of a given cheating incident """
+    
+    if request.method == "POST":
+        #getting the request parameters
+        data = request.json
+        try:
+            
+            Incident = data['IncidentID']
+        except KeyError:
+            return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})
+            
+        try:
+            client=boto3.client('s3',aws_access_key_id=access_key,aws_secret_access_key=secret_access_key,config=Config(region_name = 'eu-north-1'   ,signature_version='s3v4'))
+            session = boto3.Session(
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_access_key,
+            )
+            bucket='classroommonitoring'
+            temp=1 #to change between images
+            j=0
+            s3 = session.resource('s3')
+            mybucket=s3.Bucket(bucket)
+
+            for i in mybucket.objects.all():
+                if str(i.key) == str('c{}-{}.jpg'.format(temp,j+1)):
+                     j+=1
+            for i in range(j):
+                try: 
+                # client.download_file(bucket, 'c{}-{}.jpg'.format(temp,i), './c{}-{}.jpg'.format(temp,i))
+                        url = client.generate_presigned_url('get_object',Params={ 'Bucket': bucket, 'Key': 'c{}-{}.jpg'.format(temp,i+1) }, HttpMethod="GET",ExpiresIn=9800)   
+                        erid = db.session.query(frames).filter_by(incidentID= Incident)
+                        if erid is None:
+                            raise NotFound   
+                        print(url)
+                        print('success{}'.format(i+1))
+                        newframe=frames(imageLink=url, incidentID= Incident)
+                        db.session.add(newframe)
+                        db.session.commit()
+                        
+                except sqlalchemy.exc.IntegrityError as e:
+                    print(e.args)
+               
+                
+         
+
+        except NotFound:
+            return json.dumps({'status': 'fail', 'message': "Invalid!"})
+        except sqlalchemy.exc.IntegrityError as e:
+            print(e.args)
+            return json.dumps({'status': 'fail', 'message': "Frames Already exsist"})
 
     return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
 if __name__ == '__main__':
