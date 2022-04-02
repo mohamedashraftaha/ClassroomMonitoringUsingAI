@@ -296,3 +296,43 @@ class UserLevelAPIs:
                     return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+            
+    ############################################################################
+        @userNamespace.route('/get_exam_instance_details/<string:examInstanceID>')
+        class get_exam_instance_details(Resource):
+            def get(self, examInstanceID):
+                """ @API Description: This API is used to return all details of an exam instance """
+                status = None
+                msg = None
+                responseData = None
+                try:
+                    
+                    exam_instance_details = db.classroom_monitoring_db.session.query(db.exam_instance).\
+                        filter_by(exam_instance_id = examInstanceID).first()
+                        
+                    if exam_instance_details is None:
+                        msg = 'No details for the selected exam instance'
+                        status = 'failed'
+                        raise NotFound   
+                   
+        
+                    responseData = {"Exam Details":[{"Exam Instance ID": exam_instance_details.exam_instance_id,\
+                            "Exam Subject code": exam_instance_details.exam_reference_code,\
+                                "School": exam_instance_details.school_name,\
+                                    "Assigned Camera IP": exam_instance_details.camera_static_ip
+                    }]}
+                   
+                    msg = 'Exam Details Retreived successfully'
+                    status = 'success'
+                except KeyError:
+                    msg = 'No Assigned Exam Instances found'
+                    status = 'failed'
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                except NotFound:
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+                except sqlalchemy.exc.IntegrityError as e:
+                    msg = 'No Assigned Exam Instances found'
+                    status = 'failed'
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))

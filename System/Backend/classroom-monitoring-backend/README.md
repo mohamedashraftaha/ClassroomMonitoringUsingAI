@@ -30,18 +30,19 @@ Classroom Monitoring using AI - Backend
     -- /api/admin/register_proctor
   ### User-level APIs
     -- /api/user/login_proctor
-    -- /api/user/get_assigned_exams
+    -- /api/user/get_assigned_exams/<string:proctor_national_id>
     -- /api/user/assign_model_sensitivity
     -- /api/user/create_possible_case
     -- /api/user/report_case
     -- /api/user/dismiss_case
-    -- /api/user/get_frames_links
+    -- /api/user/get_frames_links/<string:caseID>
+    -- /api/user/get_exam_instance_details/<string:examInstanceID>
 
   ## APIs Detailed Description
     
     ##N.B: Response_data will be returned in all cases, in the cases when no data is returned it will be None. We just added it to maintain consistency to the response payload
     
-    -- /api/user/login_proctor
+    A. -- /api/user/login_proctor
       -- Request Body: 
       {
         "national_id": "",
@@ -53,7 +54,7 @@ Classroom Monitoring using AI - Backend
         }
       
 
-    -- /api/user/get_assigned_exams/<string:proctor_national_id>
+    B.-- /api/user/get_assigned_exams/<string:proctor_national_id>
       -- Request Body:
       {}
       # Nothing in the request body, proctor_national_id is passed in the url
@@ -62,7 +63,7 @@ Classroom Monitoring using AI - Backend
           'status': status, 'msg': msg, 'data': responseData
         }
    
-    -- /api/user/assign_model_sensitivity
+    C.-- /api/user/assign_model_sensitivity
       -- Request Body:
       {
         "proctor_national_id":"",
@@ -75,7 +76,7 @@ Classroom Monitoring using AI - Backend
         }
    
 
-    -- /api/user/create_possible_case
+    D-- /api/user/create_possible_case
       -- Request Body:
       {
         "exam_instance_id":"",
@@ -88,7 +89,7 @@ Classroom Monitoring using AI - Backend
    
 
 
-    -- /api/user/report_case
+    E-- /api/user/report_case
       -- Request Body:
       {
         "caseID":""
@@ -99,7 +100,7 @@ Classroom Monitoring using AI - Backend
         }
    
 
-    -- /api/user/dismiss_case
+    F-- /api/user/dismiss_case
       -- Request Body:
         {
           "caseID":""
@@ -112,7 +113,7 @@ Classroom Monitoring using AI - Backend
    
 
 
-    -- /api/user/get_frames_links/<string:caseID>
+    G-- /api/user/get_frames_links/<string:caseID>
       -- Request Body:
       {}
       # Nothing in the request body, proctor_national_id is passed in the url
@@ -123,3 +124,15 @@ Classroom Monitoring using AI - Backend
         }
    
 
+    H--   api/user/get_exam_instance_details/<string:examInstanceID>
+      -- Request Body:
+      {}
+      # Nothing in the request body, examInstanceID is passed in the url
+
+      -- Response
+        {
+          'status': status, 'msg': msg, 'data': responseData
+        }
+   
+
+  
