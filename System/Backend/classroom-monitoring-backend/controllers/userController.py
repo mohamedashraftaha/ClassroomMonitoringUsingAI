@@ -1,44 +1,17 @@
 # imports all dependencies
 from imports.imports import *
 from app import *
+from . import *
 #######################
 """User-level APIs"""    
 #######################
 class UserLevelAPIs:
-    @userlNameSpace.route('/user/registerProctor')
-    class registerProctor(Resource):
-        registerProctorData = api.model ("registerProctorData",{'national_id':fields.String("1"),'password':fields.String("$Test123"),'first_name':fields.String("Mohamed"), 'last_name':fields.String("Ashraf"),'school_name':fields.String("AUC")})
-        @api.doc(body=registerProctorData)
-        def post(self):
-            """ @API Description: This API is used to register an invigilator to the system """
-            try:  
-                data = request.json
-                NationalID = data['national_id']
-                password = data['password']
-                FirstName = data['first_name']
-                LastName = data['last_name']
-                SchoolName = data['school_name']
-                if not re.match(r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$",password):
-                    msg = "Password needs to include Minimum eight characters, at least one letter, one number and one special character"
-                    raise NotFound
-                salt = password + app.config['SECRET_KEY']
-                db_pass = hashlib.md5(salt.encode()).hexdigest()
-                new_proctor = db.proctor(NationalID = NationalID, passwd= db_pass, FirstName=FirstName,\
-                    LastName=LastName, SchoolName=SchoolName)
-                db.classroom_monitoring_db.session.add(new_proctor)
-                db.classroom_monitoring_db.session.commit()
-            except KeyError:
-                json.dumps({'status': 'Success', 'message': "exam instance created Successfully!"})
-          
-            except sqlalchemy.exc.IntegrityError as e:
-                return json.dumps({'status': 'fail', 'message': "User Already Exists"})
 
-            return json.dumps({'status': 'Success', 'message': "Proctor Added Successfully!"})
-
-        
-        @userlNameSpace.route('/user/loginProctor')
-        class loginProctor(Resource):
-            LoginProctorData = api.model ("LoginProctorData",{'national_id':fields.String("1"),'password':fields.String("$Test123")})
+        @userNamespace.route('/login_proctor')
+        class login_proctor(Resource):
+            
+            LoginProctorData = api.model ("LoginProctorData",{'national_id':fields.String(""),\
+                'password':fields.String("")})
             @api.doc(body=LoginProctorData)
             def post(self):
                 """ @API Description: This API is used to login an Proctor to the system """            
@@ -48,7 +21,7 @@ class UserLevelAPIs:
                     password = data['password']
                     salt = password + app.config['SECRET_KEY']
                     db_pass = hashlib.md5(salt.encode()).hexdigest()
-                    user =db.session.query(db.proctor).filter_by(NationalID=NationalID).first()
+                    user =db.classroom_monitoring_db.session.query(db.proctor).filter_by(national_id=NationalID).first()
                     if user is None:
                         raise NotFound
                     if db_pass != user.passwd:
@@ -63,20 +36,21 @@ class UserLevelAPIs:
 
                 return json.dumps({'status': 'Success', 'message': "Proctor logged in successfully!"})
 # ######################################################################
-        @userlNameSpace.route('/user/CreateIncident')
-        class CreateIncident(Resource):
-            CreateIncidentData = api.model ("LoginProctorData",{'examroom_id':fields.String("1"),'stat':fields.String("$Test123")})
+        @userNamespace.route('/create_possible_case')
+        class create_possible_case(Resource):
+            CreateIncidentData = api.model ("CreateIncidentData",{'exam_instance_id':fields.String(""),\
+                'stat':fields.String("")})
             @api.doc(body=CreateIncidentData)
             def post(self):
                 """ @API Description: This API is used to CreateIncident """                        
                 try:   
                     data = request.json
-                    ExamRoomID = data['examroom_id']
+                    examInstanceID = data['exam_instance_id']
                     state = data['stat']                
-                    erid = db.session.query(db.ExamRoom).filter_by(ExamroomID= ExamRoomID)
+                    erid = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id= examInstanceID)
                     if erid is None:
                             raise NotFound
-                    newincident=db.examincidents(stat=state, ExamroomID= ExamRoomID)
+                    newincident=db.exam_instance_cases(stat=state, exam_instance_id= examInstanceID)
                     db.classroom_monitoring_db.session.add(newincident)
                     db.classroom_monitoring_db.session.commit()
                 except KeyError:
@@ -89,17 +63,17 @@ class UserLevelAPIs:
 
                 return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
 #######################################
-        @userlNameSpace.route('/user/dismiss')
-        class dismiss(Resource):
-            dismissData = api.model ("dismissData",{'IncidentID':fields.String("1")})
+        @userNamespace.route('/dismiss_case')
+        class dismiss_case(Resource):
+            dismissData = api.model ("dismissData",{'caseID':fields.String("")})
             @api.doc(body=dismissData)
             def post(self):
                 """ @API Description: This API is used to update status to Not cheating """
                 try:
                     data = request.json        
-                    Incident = data['IncidentID']
-                    db.session.query(db.examincidents).\
-                    filter_by(IncidentID=Incident).\
+                    caseID = data['caseID']
+                    db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
+                    filter_by(case_id=caseID).\
                     update({'stat':'NC'})
                     db.classroom_monitoring_db.session.commit()
                 except KeyError:
@@ -113,9 +87,9 @@ class UserLevelAPIs:
 
                 return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
 ##########################################################
-        @userlNameSpace.route('/user/report')
-        class report(Resource):
-            reportData = api.model ("reportData",{'IncidentID':fields.String("1")})
+        @userNamespace.route('/report_case')
+        class report_case(Resource):
+            reportData = api.model ("reportData",{'caseID':fields.String("")})
             @api.doc(body=reportData)
             def post(self):
                 """ @API Description: This API is used to update status to  cheating """
@@ -123,10 +97,10 @@ class UserLevelAPIs:
                 #getting the request parameters
                 try:
                     data = request.json            
-                    Incident = data['IncidentID']
+                    caseID = data['caseID']
                     
-                    db.session.query(db.examincidents).\
-                    filter_by(IncidentID=Incident).\
+                    db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
+                    filter_by(case_id=caseID).\
                     update({'stat':'C'})
                     db.classroom_monitoring_db.session.commit()
                 except KeyError:
@@ -141,28 +115,20 @@ class UserLevelAPIs:
                 return json.dumps({'status': 'Success', 'message': "Incident Completed Successfully!"})
 ################################################################
 
-        @userlNameSpace.route('/user/getFramesLinks')
-        class report(Resource):
-            getFramesLinksData = api.model ("getFramesLinksData",{'IncidentID':fields.String("1")})
-            @api.doc(body=getFramesLinksData)
+        @userNamespace.route('/get_frames_links/<int:caseID>')
+        class get_frames_links(Resource):
             @cross_origin()
-            def get(self):
+            def get(self, caseID):
                 """ @API Description: This API is used to retrieve links of the frames of a given cheating incident """
-    
-                response = None
-                #getting the request parameters
-                IncidentID = request.args.get("incidentID")
                 urlList  = []
                 try:
-                    IncidentID = request.args.get("incidentID")
-                    
                     client=boto3.client('s3',aws_access_key_id=access_key,aws_secret_access_key=secret_access_key,config=Config(region_name = 'eu-north-1'   ,signature_version='s3v4'))
                     session = boto3.Session(
                     aws_access_key_id=access_key,
                     aws_secret_access_key=secret_access_key,
                     )
                     bucket='classroommonitoring'
-                    temp= IncidentID #to change between images
+                    temp= caseID #to change between images
                     j=0
                     s3 = session.resource('s3')
                     mybucket=s3.Bucket(bucket)
@@ -174,13 +140,13 @@ class UserLevelAPIs:
                         try: 
                         # client.download_file(bucket, 'c{}-{}.jpg'.format(temp,i), './c{}-{}.jpg'.format(temp,i))
                                 url = client.generate_presigned_url('get_object',Params={ 'Bucket': bucket, 'Key': 'c{}-{}.jpg'.format(temp,i+1) }, HttpMethod="GET",ExpiresIn=9800)   
-                                erid = db.session.query(db.frames).filter_by(incidentID= IncidentID)
+                                erid = db.classroom_monitoring_db.session.query(db.frames).filter_by(case_id= caseID)
                                 if erid is None:
                                     raise NotFound   
                                 print(url)
                                 urlList.append(url)
                                 print('success{}'.format(i+1))
-                                newframe=db.frames(imageLink=url, incidentID= IncidentID)
+                                newframe=db.frames(image_link=url, case_id= caseID)
                                 db.classroom_monitoring_db.session.add(newframe)
                                 db.classroom_monitoring_db.session.commit()
                                 

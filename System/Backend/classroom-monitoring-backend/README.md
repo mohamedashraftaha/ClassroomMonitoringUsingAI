@@ -21,16 +21,16 @@ Classroom Monitoring using AI - Backend
 
 ## APIs
   ### Admin-level APIs
-    -- /admin/register_admin
-    -- /admin/login_admin
-    -- /admin/create_exam_instance
-    -- /admin/assign_proctor_to_exam
+    -- /api/admin/register_admin
+    -- /api/admin/login_admin
+    -- /api/admin/create_exam_instance
+    -- /api/admin/assign_proctor_to_exam
+    -- /api/admin/register_proctor
   ### User-level APIs
-    -- /user/register_proctor
-    -- /user/login_proctor
-    -- /user/get_assigned_exams
-    -- /user/choose_model_sensitivity
-    -- /user/create_possible_case
-    -- /user/report_case
-    -- /user/dismiss_case
-    -- /user/get_frames_links
+    -- /api/user/login_proctor
+    -- /api/user/get_assigned_exams
+    -- /api/user/choose_model_sensitivity
+    -- /api/user/create_possible_case
+    -- /api/user/report_case
+    -- /api/user/dismiss_case
+    -- /api/user/get_frames_links
