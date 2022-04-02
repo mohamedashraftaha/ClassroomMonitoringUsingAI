@@ -1,5 +1,4 @@
 # imports all dependencies
-from imports.imports import *
 from app import *
 #######################
 """Admin-level APIs"""    
@@ -38,16 +37,16 @@ class AdminLevelAPIs:
             except KeyError:
                 msg = 'Missing Parameter'
                 status = 'failed'
-                return json.dumps({'status': status, 'msg':msg, 'data': responseData})        
+                return json.loads(json.dumps({'status': status, 'msg':msg, 'data': responseData}))
             except NotFound:
                 msg = 'User Not Found'
                 status = 'failed'
-                return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
             except sqlalchemy.exc.IntegrityError as e:
                 msg  ="User Already Exists"
-                return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
 
-            return json.dumps({'status': status, 'msg': msg,'data': responseData})
+            return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
     #########################################################################
         @adminNamespace.route('/login_admin')
         class login_admin(Resource): 
@@ -77,20 +76,20 @@ class AdminLevelAPIs:
                 except KeyError:
                     status= 'failed'
                     msg = 'Missing Parameter'
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                            
                 except NotFound:
                     status= 'failed'
                     msg = 'User Not Found'                   
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 
                 except sqlalchemy.exc.IntegrityError as e:
                     status= 'failed'
                     msg = 'User Already Exists'                   
 
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
    
-                return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
 #############################################################################################################
         @adminNamespace.route('/create_exam_instance')
         class create_exam_instance(Resource):
@@ -128,17 +127,17 @@ class AdminLevelAPIs:
                 except KeyError:
                     status = 'failed'
                     msg = 'Missing Parameter'
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 
                 except NotFound:
                     status = 'failed'
                     msg = 'Admin Not Found'
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
                     status = 'failed'
                     msg = 'exam instance Already Exists'
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
-                return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 
     # ##############################################################    
         @adminNamespace.route('/assign_proctor_to_exam')
@@ -190,16 +189,16 @@ class AdminLevelAPIs:
                 except KeyError:
                     status = 'failed'
                     msg = "Admin or Proctor or Exam Instance ID Not Found"
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 except NotFound:
                     status = 'failed'
                     msg = "Admin or Proctor or Exam Instance ID Not Found"
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
                     status = 'failed'
                     msg = "Assignment Already Exists"
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
-                return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
         
     # ###############################################################
         @adminNamespace.route('/register_proctor')
@@ -236,12 +235,12 @@ class AdminLevelAPIs:
                     except KeyError:
                         status = 'failed'
                         msg = "Missing Parameter"  
-                        return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 
                     except sqlalchemy.exc.IntegrityError as e:
                         status = 'failed'
                         msg = "User Already Exists" 
-                        return json.dumps({'status': status, 'msg': msg,'data': responseData})
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                
                     ###############################################################

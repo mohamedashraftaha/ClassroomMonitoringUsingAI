@@ -1,7 +1,7 @@
 Classroom Monitoring using AI - Backend
 
 ## Entity-Relationship Diagram
-![SystemDB-ERD-Copy of chen'sNotation drawio](https://user-images.githubusercontent.com/75078872/161384361-e784dfd9-416a-4525-b548-2b741d4c32c0.png)
+![SystemDB-ERD-Copy of chen'sNotation drawio](https://user-images.githubusercontent.com/75078872/161384383-e91ad16c-689c-496a-b1c5-54777b168c3c.png)
 
 
 ## Relational Model
@@ -31,7 +31,7 @@ Classroom Monitoring using AI - Backend
   ### User-level APIs
     -- /api/user/login_proctor
     -- /api/user/get_assigned_exams
-    -- /api/user/choose_model_sensitivity
+    -- /api/user/assign_model_sensitivity
     -- /api/user/create_possible_case
     -- /api/user/report_case
     -- /api/user/dismiss_case

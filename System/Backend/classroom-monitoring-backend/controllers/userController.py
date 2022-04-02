@@ -1,6 +1,4 @@
 # imports all dependencies
-from tkinter import E
-from imports.imports import *
 from app import *
 from . import *
 #######################
@@ -37,17 +35,18 @@ class UserLevelAPIs:
                 except KeyError:
                     status = 'failed'
                     msg= 'Missing Parameter'
-                    json.dumps({'status': status, 'msg': msg, 'data':responseData})
+                    json.loads(json.dumps({'status': status, 'msg': msg, 'data':responseData}))
 
                 except NotFound:
                     status = 'failed'
                     msg= "User Not Found"
-                    return json.dumps({'status': status, 'msg': msg, 'data':responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data':responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
                     status = 'failed'
                     msg= "User Already Exists"
-                    return json.dumps({'status': status, 'msg':msg, 'data': responseData})
-                return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg':msg, 'data': responseData}))
+                
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 # ######################################################################
         @userNamespace.route('/create_possible_case')
         class create_possible_case(Resource):
@@ -74,16 +73,16 @@ class UserLevelAPIs:
                 except KeyError:
                     status = 'failed'
                     msg = 'Missing Parameter'
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except NotFound:
                     status = 'failed'
                     msg = 'Invalid!'
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
                     status = 'failed'
                     msg = 'Incident Already Exists or not found'
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
-                return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 #######################################
         @userNamespace.route('/dismiss_case')
         class dismiss_case(Resource):
@@ -107,17 +106,17 @@ class UserLevelAPIs:
                 except KeyError:
                     status = 'failed'
                     msg = 'Missing Parameter'
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except NotFound:
                     status = 'failed'
                     msg = 'Invalid'
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
                     status = 'failed'
                     msg = 'Process of dismissing the case failed!'
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
             
-                return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 ##########################################################
         @userNamespace.route('/report_case')
         class report_case(Resource):
@@ -143,20 +142,20 @@ class UserLevelAPIs:
                 except KeyError:
                     status = 'failed'
                     msg = 'Missing Parameter'       
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 
                 except NotFound:
                     status = 'failed'
                     msg = 'Invalid'
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
        
                     status = 'failed'
                     msg = 'Process of reporting the case failed!'
                     print(e.args)
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 
-                return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 ################################################################
 
         @userNamespace.route('/get_frames_links/<string:caseID>')
@@ -178,7 +177,8 @@ class UserLevelAPIs:
                     j=0
                     s3 = session.resource('s3')
                     mybucket=s3.Bucket(bucket)
-
+                    status = 'success'
+                    msg = 'frames retrieved successfully'
                     for i in mybucket.objects.all():
                         if str(i.key) == str('c{}-{}.jpg'.format(temp,j+1)):
                             j+=1
@@ -195,27 +195,26 @@ class UserLevelAPIs:
                                 newframe=db.frames(image_link=url, case_id= caseID)
                                 db.classroom_monitoring_db.session.add(newframe)
                                 db.classroom_monitoring_db.session.commit()
-                                status = 'success'
-                                msg = 'frames retrieved successfully'
+    
                         except sqlalchemy.exc.IntegrityError as e:
                             print(e.args)
                 except KeyError:
                     status = 'failed'
                     msg = 'Missing Parameter'  
-                    return json.dumps({'status': status, 'msg': msg, 'data': urlList})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
               
                 except NotFound:
                     status = 'failed'
                     msg = 'Invalid!'
-                    return json.dumps({'status': status, 'msg': msg, 'data': urlList})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
                 except sqlalchemy.exc.IntegrityError as e:
                     status = 'failed'
                     msg = 'Frames Already exists'
        
                     print(e.args)
-                    return json.dumps({'status': status, 'msg': msg, 'data': urlList})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
  
-                return json.dumps({'status': status, 'msg': msg, 'data': urlList})
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
 ################################################################################
         @userNamespace.route('/get_assigned_exams/<string:proctor_national_id>')
         class get_assigned_exams(Resource):
@@ -237,17 +236,17 @@ class UserLevelAPIs:
                 except KeyError:
                     msg = 'No Assigned Exam Instances to this user'
                     status = 'failed'
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 except NotFound:
                     msg = 'No Assigned Exam Instances to this user'
                     status = 'failed'
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
                     msg = 'No Assigned Exam Instances to this user'
                     status = 'failed'
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 
-                return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 #########################################################################
         @userNamespace.route('/assign_model_sensitivity')
         class assign_model_sensitivity(Resource):
@@ -288,12 +287,12 @@ class UserLevelAPIs:
                 except KeyError:
                     msg = 'No Assigned Exam Instances to this user'
                     status = 'failed'
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 except NotFound:
-                    return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
                     msg = 'No Assigned Exam Instances to this user'
                     status = 'failed'
-                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 
-                return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
