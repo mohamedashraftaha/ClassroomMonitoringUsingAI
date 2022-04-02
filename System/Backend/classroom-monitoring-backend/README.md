@@ -1,7 +1,7 @@
 Classroom Monitoring using AI - Backend
 
 ## Entity-Relationship Diagram
-![SystemDB-ERD-Copy of chen'sNotation drawio](https://user-images.githubusercontent.com/75078872/161354145-801ec27e-ec65-45d1-b967-3377ac52e0a4.png)
+![SystemDB-ERD-Copy of chen'sNotation drawio](https://user-images.githubusercontent.com/75078872/161384361-e784dfd9-416a-4525-b548-2b741d4c32c0.png)
 
 
 ## Relational Model
