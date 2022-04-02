@@ -13,6 +13,9 @@ class AdminLevelAPIs:
         def post(self):
             """ @API Description: This API is used to register an admininstrator to the system """
             #getting the request parameters
+            status = None
+            msg = None
+            responseData = None
             try:
                 data = request.json
                 NationalID = data['national_id']
@@ -20,9 +23,8 @@ class AdminLevelAPIs:
                 FirstName = data['first_name']
                 LastName = data['last_name']
                 position = data['job_role']
-            except KeyError:
-                    return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})        
-            try:
+                msg = 'Administrator Added Successfully!'
+                status = 'success'     
                 if not re.match(r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$",password):
                     msg = "Password needs to include Minimum eight characters, at least one letter, one number and one special character"
                     raise NotFound
@@ -32,12 +34,20 @@ class AdminLevelAPIs:
                     last_name=LastName, job_role=position)
                 db.classroom_monitoring_db.session.add(newAdmin)
                 db.classroom_monitoring_db.session.commit()
-            except NotFound:
-                return json.dumps({'status': 'fail', 'message': msg})
-            except sqlalchemy.exc.IntegrityError as e:
-                return json.dumps({'status': 'fail', 'message': "User Already Exists"})
 
-            return json.dumps({'status': 'Success', 'message': "Administrator Added Successfully!"})
+            except KeyError:
+                msg = 'Missing Parameter'
+                status = 'failed'
+                return json.dumps({'status': status, 'msg':msg, 'data': responseData})        
+            except NotFound:
+                msg = 'User Not Found'
+                status = 'failed'
+                return json.dumps({'status': status, 'msg': msg, 'data': responseData})
+            except sqlalchemy.exc.IntegrityError as e:
+                msg  ="User Already Exists"
+                return json.dumps({'status': status, 'msg': msg,'data': responseData})
+
+            return json.dumps({'status': status, 'msg': msg,'data': responseData})
     #########################################################################
         @adminNamespace.route('/login_admin')
         class login_admin(Resource): 
@@ -47,7 +57,9 @@ class AdminLevelAPIs:
             @api.doc(body = loginAdminData)
             def post(self):            
                 """ @API Description: This API is used to login an admininstrator to the system """
-
+                status = None
+                msg = None
+                responseData = None
                 try:
                     data = request.json
                     NationalID = data['national_id']
@@ -59,14 +71,26 @@ class AdminLevelAPIs:
                         raise NotFound
                     if db_pass != user.passwd:
                         raise NotFound
+                    status= 'Success'
+                    msg = 'Admin logged in successfully!'
+                    
                 except KeyError:
-                        return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})        
+                    status= 'failed'
+                    msg = 'Missing Parameter'
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                           
                 except NotFound:
-                    return json.dumps({'status': 'fail', 'message': "User Not Found"})
+                    status= 'failed'
+                    msg = 'User Not Found'                   
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                
                 except sqlalchemy.exc.IntegrityError as e:
-                    return json.dumps({'status': 'fail', 'message': "User Already Exists"})
+                    status= 'failed'
+                    msg = 'User Already Exists'                   
 
-                return json.dumps({'status': 'Success', 'message': "Admin logged in successfully!"})
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+   
+                return json.dumps({'status': status, 'msg': msg,'data': responseData})
 #############################################################################################################
         @adminNamespace.route('/create_exam_instance')
         class create_exam_instance(Resource):
@@ -77,6 +101,9 @@ class AdminLevelAPIs:
             @api.doc(body = examInstanceData)
             def post(self):               
                 """ @API Description: This API is used to Create Exam Instance """
+                status = None
+                msg = None
+                responseData = None
                 try:
                     data = request.json
                     examInstanceID = data['exam_instance_id']
@@ -95,15 +122,23 @@ class AdminLevelAPIs:
                         admin_national_id = adminNatID, camera_static_ip= camera_static_ip)
                     db.classroom_monitoring_db.session.add(newRoom)
                     db.classroom_monitoring_db.session.commit()
+                
+                    msg = "exam instance created Successfully!"
+                    status ='Success'
                 except KeyError:
-                        return json.dumps({'status': 'fail', 'message': 'Missing Parameter'})          
+                    status = 'failed'
+                    msg = 'Missing Parameter'
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
                 
                 except NotFound:
-                    return json.dumps({'status': 'fail', 'message': "Admin Not Found"})
+                    status = 'failed'
+                    msg = 'Admin Not Found'
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
                 except sqlalchemy.exc.IntegrityError as e:
-                    return json.dumps({'status': 'fail', 'message': "exam instance Already Exists"})
-
-                return json.dumps({'status': 'Success', 'message': "exam instance created Successfully!"})
+                    status = 'failed'
+                    msg = 'exam instance Already Exists'
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                return json.dumps({'status': status, 'msg': msg,'data': responseData})
                 
     # ##############################################################    
         @adminNamespace.route('/assign_proctor_to_exam')
@@ -113,6 +148,10 @@ class AdminLevelAPIs:
             @api.doc(body = proctorExamAssignmentData)
             def post(self):
                 """ @API Description: This API is used to by the admin to assign a proctor to exam instance """
+                status = None
+                msg = None
+                responseData = None
+
                 try:   
                     data = request.json
                     adminNatID = data['admin_national_id']
@@ -137,17 +176,30 @@ class AdminLevelAPIs:
                     # else admin is found
                     newAssignment = db.admin_assign_proctor(admin_national_id = adminNatID, proctor_national_id= proctorNatID, \
                         exam_instance_id = examInstanceID)
+                    
+                    new_proctor_exam = db.proctor_monitor_exam(proctor_national_id= proctorNatID, \
+                        exam_instance_id = examInstanceID)
                     db.classroom_monitoring_db.session.add(newAssignment)
                     db.classroom_monitoring_db.session.commit()
+                    db.classroom_monitoring_db.session.add(new_proctor_exam)
+                    db.classroom_monitoring_db.session.commit()
+                
+                    status = 'success'
+                    msg = "Assignment Completed Successfully!"
+                
                 except KeyError:
-                    json.dumps({'status': 'Success', 'message': "exam instance created Successfully!"})
-
+                    status = 'failed'
+                    msg = "Admin or Proctor or Exam Instance ID Not Found"
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
                 except NotFound:
-                    return json.dumps({'status': 'fail', 'message': "Admin or Proctor or Exam Instance ID Not Found"})
+                    status = 'failed'
+                    msg = "Admin or Proctor or Exam Instance ID Not Found"
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
                 except sqlalchemy.exc.IntegrityError as e:
-                    return json.dumps({'status': 'fail', 'message': "Assignment Already Exists"})
-
-                return json.dumps({'status': 'Success', 'message': "Assignment Completed Successfully!"})
+                    status = 'failed'
+                    msg = "Assignment Already Exists"
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                return json.dumps({'status': status, 'msg': msg,'data': responseData})
         
     # ###############################################################
         @adminNamespace.route('/register_proctor')
@@ -158,6 +210,10 @@ class AdminLevelAPIs:
                 @api.doc(body=registerProctorData)
                 def post(self):
                     """ @API Description: This API is used to register an invigilator to the system """
+                    status = None
+                    msg = None
+                    responseData = None
+
                     try:  
                         data = request.json
                         NationalID = data['national_id']
@@ -174,12 +230,18 @@ class AdminLevelAPIs:
                             last_name=LastName, school_name=SchoolName)
                         db.classroom_monitoring_db.session.add(new_proctor)
                         db.classroom_monitoring_db.session.commit()
+                    
+                        status = 'success'
+                        msg = "Proctor Added Successfully!"
                     except KeyError:
-                        json.dumps({'status': 'Success', 'message': "exam instance created Successfully!"})
+                        status = 'failed'
+                        msg = "Missing Parameter"  
+                        return json.dumps({'status': status, 'msg': msg,'data': responseData})
                 
                     except sqlalchemy.exc.IntegrityError as e:
-                        return json.dumps({'status': 'fail', 'message': "User Already Exists"})
-
-                    return json.dumps({'status': 'Success', 'message': "Proctor Added Successfully!"})
-
+                        status = 'failed'
+                        msg = "User Already Exists" 
+                        return json.dumps({'status': status, 'msg': msg,'data': responseData})
+                    return json.dumps({'status': status, 'msg': msg,'data': responseData})
+               
                     ###############################################################
