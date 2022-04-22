@@ -71,12 +71,13 @@ ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE students_positions(
-student_number int NOT NULL PRIMARY KEY ,
+student_number int NOT NULL ,
 exam_instance_id VARCHAR(255) NOT NULL,
 x double NOT NULL DEFAULT 0.0,
 y double NOT NULL DEFAULT 0.0,
 w double NOT NULL DEFAULT 0.0,
 h double NOT NULL DEFAULT 0.0,
+PRIMARY KEY(student_number, exam_instance_id)
 FOREIGN KEY (exam_instance_id) REFERENCES exam_instance(exam_instance_id)
 ON UPDATE CASCADE ON DELETE CASCADE
 );
