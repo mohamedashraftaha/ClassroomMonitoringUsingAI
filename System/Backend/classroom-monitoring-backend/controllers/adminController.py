@@ -268,13 +268,12 @@ class AdminLevelAPIs:
                         data = request.json
                         student_number = data['student_number']
                         exam_instance_id = data['exam_instance_id']
-                        
                         eid =db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id=exam_instance_id).first()
                         snum = db.classroom_monitoring_db.session.query(db.students_positions).filter_by(student_number=student_number).first()
                         if eid is None:
                             raise NotFound
                         if snum != None:
-                            raise sqlalchemy.exc.IntegrityError
+                            raise NotFound
                         students_to_exam = db.students_positions(student_number = student_number,exam_instance_id = exam_instance_id)
                         db.classroom_monitoring_db.session.add(students_to_exam)
                         db.classroom_monitoring_db.session.commit()
@@ -287,7 +286,7 @@ class AdminLevelAPIs:
 
                     except NotFound:
                         status = 'failed'
-                        msg = 'Exam Doesnot exist'
+                        msg = 'Exam Doesnot/ Sudent Already exist'
                         return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
                  
                     except sqlalchemy.exc.IntegrityError as e:

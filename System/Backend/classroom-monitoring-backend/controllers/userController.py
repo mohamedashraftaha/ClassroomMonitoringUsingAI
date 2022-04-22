@@ -199,6 +199,14 @@ class UserLevelAPIs:
                     mybucket=s3.Bucket(bucket)
                     status = 'success'
                     msg = 'frames retrieved successfully'
+                    cid = db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter_by(case_id= caseID).first()
+                    erid = db.classroom_monitoring_db.session.query(db.frames).filter_by(case_id= caseID).first()
+                    if erid is None:
+                        raise NotFound 
+   
+                    if cid is None:
+                        raise NotFound  
+                           
                     for i in mybucket.objects.all():
                         if str(i.key) == str('c{}-{}.jpg'.format(temp,j+1)):
                             j+=1
@@ -206,12 +214,6 @@ class UserLevelAPIs:
                         try: 
                         # client.download_file(bucket, 'c{}-{}.jpg'.format(temp,i), './c{}-{}.jpg'.format(temp,i))
                                 url = client.generate_presigned_url('get_object',Params={ 'Bucket': bucket, 'Key': 'c{}-{}.jpg'.format(temp,i+1) }, HttpMethod="GET",ExpiresIn=9800)   
-                                erid = db.classroom_monitoring_db.session.query(db.frames).filter_by(case_id= caseID).first()
-                                cid = db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter_by(case_id= caseID).first()
-                                if erid is None:
-                                    raise NotFound 
-                                if cid is None:
-                                    raise NotFound  
                                 print(url)
                                 urlList.append(url)
                                 print('success{}'.format(i+1))
