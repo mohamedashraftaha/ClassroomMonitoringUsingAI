@@ -206,8 +206,8 @@ class UserLevelAPIs:
                         try: 
                         # client.download_file(bucket, 'c{}-{}.jpg'.format(temp,i), './c{}-{}.jpg'.format(temp,i))
                                 url = client.generate_presigned_url('get_object',Params={ 'Bucket': bucket, 'Key': 'c{}-{}.jpg'.format(temp,i+1) }, HttpMethod="GET",ExpiresIn=9800)   
-                                erid = db.classroom_monitoring_db.session.query(db.frames).filter_by(case_id= caseID)
-                                cid = db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter_by(case_id= caseID)
+                                erid = db.classroom_monitoring_db.session.query(db.frames).filter_by(case_id= caseID).first()
+                                cid = db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter_by(case_id= caseID).first()
                                 if erid is None:
                                     raise NotFound 
                                 if cid is None:
@@ -227,7 +227,7 @@ class UserLevelAPIs:
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))              
                 except NotFound:
                     status = 'failed'
-                    msg = 'Invalid!'
+                    msg = 'Case ID Doesnot Exist'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
                 except sqlalchemy.exc.IntegrityError as e:
                     print("HERE2")
