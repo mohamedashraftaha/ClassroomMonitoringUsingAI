@@ -18,7 +18,6 @@ class UserLevelAPIs:
                 status = None
                 msg = None
                 responseData = None
-
                 try:   
                     data = request.json
                     NationalID = data['national_id']
@@ -45,13 +44,13 @@ class UserLevelAPIs:
                     status = 'failed'
                     msg= "User Already Exists"
                     return json.loads(json.dumps({'status': status, 'msg':msg, 'data': responseData}))
-                
+              
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 # ######################################################################
         @userNamespace.route('/create_possible_case')
         class create_possible_case(Resource):
             CreateIncidentData = api.model ("CreateIncidentData",{'exam_instance_id':fields.String(""),\
-                'stat':fields.String("")})
+                'stat':fields.String(""), 'confidence': fields.Float()})
             @api.doc(body=CreateIncidentData)
             def post(self):
                 """ @API Description: This API is used to CreateIncident """                        
@@ -61,11 +60,12 @@ class UserLevelAPIs:
                 try:   
                     data = request.json
                     examInstanceID = data['exam_instance_id']
-                    state = data['stat']                
+                    state = data['stat']      
+                    confidence = data['confidence']          
                     erid = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id= examInstanceID)
                     if erid is None:
                             raise NotFound
-                    newincident=db.exam_instance_cases(stat=state, exam_instance_id= examInstanceID)
+                    newincident=db.exam_instance_cases(stat=state, exam_instance_id= examInstanceID, confidence = confidence)
                     db.classroom_monitoring_db.session.add(newincident)
                     db.classroom_monitoring_db.session.commit()
                     status = 'success'
@@ -82,6 +82,11 @@ class UserLevelAPIs:
                     status = 'failed'
                     msg = 'Incident Already Exists or not found'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+                except:
+                    db.classroom_monitoring_db.session.rollback()
+                    raise
+                finally:
+                     db.classroom_monitoring_db.session.close()
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 #######################################
         @userNamespace.route('/dismiss_case')
@@ -96,11 +101,17 @@ class UserLevelAPIs:
                 try:
                     data = request.json        
                     caseID = data['caseID']
+                    
+                    dbcases = db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
+                    filter_by(case_id=caseID).first()
+                    
+                    if dbcases is None:
+                        raise NotFound
+
                     db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
                     filter_by(case_id=caseID).\
                     update({'stat':'NC'})
-                    db.classroom_monitoring_db.session.commit()
-                    
+                    db.classroom_monitoring_db.session.commit()                   
                     status = 'success'
                     msg = 'Case Dismissed Successfully'
                 except KeyError:
@@ -109,19 +120,19 @@ class UserLevelAPIs:
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except NotFound:
                     status = 'failed'
-                    msg = 'Invalid'
+                    msg = 'Case ID not found'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
                     status = 'failed'
                     msg = 'Process of dismissing the case failed!'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
-            
+          
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 ##########################################################
         @userNamespace.route('/report_case')
         class report_case(Resource):
-            reportData = api.model ("reportData",{'caseID':fields.String("")})
-            @api.doc(body=reportData)
+            reportCaseData = api.model ("reportCaseData",{'caseID':fields.String("")})
+            @api.doc(body=reportCaseData)
             def post(self):
                 """ @API Description: This API is used to update status to  cheating """
     
@@ -131,7 +142,13 @@ class UserLevelAPIs:
                 responseData = None
                 try:
                     data = request.json            
-                    caseID = data['caseID']
+                    caseID = data['caseID']                    
+                    
+                    dbcases = db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
+                    filter_by(case_id=caseID).first()
+                    
+                    if dbcases is None:
+                        raise NotFound
                     
                     db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
                     filter_by(case_id=caseID).\
@@ -143,18 +160,20 @@ class UserLevelAPIs:
                     status = 'failed'
                     msg = 'Missing Parameter'       
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
-
                 except NotFound:
                     status = 'failed'
-                    msg = 'Invalid'
+                    msg = 'Case ID not found'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
-                except sqlalchemy.exc.IntegrityError as e:
-       
+                except sqlalchemy.exc.IntegrityError as e:     
                     status = 'failed'
                     msg = 'Process of reporting the case failed!'
                     print(e.args)
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
-
+                except:
+                    db.classroom_monitoring_db.session.rollback()
+                    raise
+                finally:
+                     db.classroom_monitoring_db.session.close()
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 ################################################################
 
@@ -165,7 +184,7 @@ class UserLevelAPIs:
                 """ @API Description: This API is used to retrieve links of the frames of a given cheating incident """
                 urlList  = []
                 status = None
-                msg = None
+                msg = None                
                 try:
                     client=boto3.client('s3',aws_access_key_id=access_key,aws_secret_access_key=secret_access_key,config=Config(region_name = 'eu-north-1'   ,signature_version='s3v4'))
                     session = boto3.Session(
@@ -201,19 +220,22 @@ class UserLevelAPIs:
                 except KeyError:
                     status = 'failed'
                     msg = 'Missing Parameter'  
-                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
-              
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))              
                 except NotFound:
                     status = 'failed'
                     msg = 'Invalid!'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
                 except sqlalchemy.exc.IntegrityError as e:
+                    print("HERE2")
                     status = 'failed'
-                    msg = 'Frames Already exists'
-       
+                    msg = 'Frames Already exists'       
                     print(e.args)
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
- 
+                except:
+                    db.classroom_monitoring_db.session.rollback()
+                    raise
+                finally:
+                     db.classroom_monitoring_db.session.close()
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
 ################################################################################
         @userNamespace.route('/get_assigned_exams/<string:proctor_national_id>')
@@ -245,7 +267,11 @@ class UserLevelAPIs:
                     msg = 'No Assigned Exam Instances to this user'
                     status = 'failed'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
-                
+                except:
+                    db.classroom_monitoring_db.session.rollback()
+                    raise
+                finally:
+                     db.classroom_monitoring_db.session.close()
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 #########################################################################
         @userNamespace.route('/assign_model_sensitivity')
@@ -258,8 +284,7 @@ class UserLevelAPIs:
                 status = None
                 msg = None
                 responseData = None
-                try:
-                    
+                try:                    
                     data = request.json
                     proctor_national_id = data['proctor_national_id']
                     exam_instance_id = data['exam_instance_id']
@@ -275,9 +300,7 @@ class UserLevelAPIs:
                     if exam_instance.exam_instance_id != exam_instance_id:
                         msg = 'No Assigned Exam Instances to this user'
                         status = 'failed'        
-                        raise NotFound
-                   
-                   
+                        raise NotFound                   
                     db.classroom_monitoring_db.session.query(db.proctor_monitor_exam).\
                     filter_by(proctor_national_id=proctor_national_id).\
                     update({'model_sensitivity':model_sensitivity})
@@ -294,6 +317,11 @@ class UserLevelAPIs:
                     msg = 'No Assigned Exam Instances to this user'
                     status = 'failed'
                     return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                except:
+                    db.classroom_monitoring_db.session.rollback()
+                    raise
+                finally:
+                     db.classroom_monitoring_db.session.close()
                 
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
             
@@ -305,21 +333,17 @@ class UserLevelAPIs:
                 status = None
                 msg = None
                 responseData = None
-                try:
-                    
+                try:                  
                     exam_instance_details = db.classroom_monitoring_db.session.query(db.exam_instance).\
-                        filter_by(exam_instance_id = examInstanceID).first()
-                        
+                        filter_by(exam_instance_id = examInstanceID).first()    
                     if exam_instance_details is None:
                         msg = 'No details for the selected exam instance'
                         status = 'failed'
-                        raise NotFound   
-                   
-        
-                    responseData = {"Exam Details":[{"Exam Instance ID": exam_instance_details.exam_instance_id,\
-                            "Exam Subject code": exam_instance_details.exam_reference_code,\
+                        raise NotFound           
+                    responseData = {"Exam_Details":[{"Exam_Instance_ID": exam_instance_details.exam_instance_id,\
+                            "Exam_Subject_code": exam_instance_details.exam_reference_code,\
                                 "School": exam_instance_details.school_name,\
-                                    "Assigned Camera IP": exam_instance_details.camera_static_ip
+                                    "Assigned_Camera_IP": exam_instance_details.camera_static_ip
                     }]}
                    
                     msg = 'Exam Details Retreived successfully'
@@ -334,5 +358,129 @@ class UserLevelAPIs:
                     msg = 'No Assigned Exam Instances found'
                     status = 'failed'
                     return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
-                
+              
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+            
+###########################################################################################
+        @userNamespace.route('/add_students_locations')
+        class add_students_locations (Resource):
+                addStudentsLocations = api.model ("addStudentsLocations",{'student_number':fields.Integer(), 'exam_instance_id': fields.String(""),'x':fields.Float(),\
+                    'y':fields.Float(), 'w':fields.Float(),\
+                        'h':fields.Float(),})
+                @api.doc(body=addStudentsLocations)
+                def post(self):
+                    """ @API Description: This API is used to add students locations based on the bounding boxes generated by YOLO"""
+                    status = None
+                    msg = None
+                    responseData = None
+
+                    try:  
+                        data = request.json
+                        student_number = data['student_number']
+                        exam_instance_id = data['exam_instance_id']
+                        x = data['x']
+                        y = data['y']
+                        w = data['w']
+                        h = data['h']
+                        
+                        eid =db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id=exam_instance_id).first()
+                        snum = db.classroom_monitoring_db.session.query(db.students_positions).filter_by(student_number=student_number).first()
+                        if eid is None:
+                            raise NotFound
+                        if snum is None:
+                             raise NotFound
+                         
+                         
+                        db.classroom_monitoring_db.session.query(db.students_positions).\
+                            filter_by(exam_instance_id=exam_instance_id, student_number=student_number).\
+                            update({'x':x, 'y':y,'w':w,'h':h})
+                        db.classroom_monitoring_db.session.commit()
+                        status = 'success'
+                        msg = "Location for student Added Successfully!"
+                    except KeyError:
+                        status = 'failed'
+                        msg = "Missing Parameter"  
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+
+                    except NotFound:
+                        status = 'failed'
+                        msg = 'Exam/Student Does not exist'
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
+                 
+                    except sqlalchemy.exc.IntegrityError as e:
+                        status = 'failed'
+                        msg = "Location Already Exists" 
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))             
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+############################################################################
+        @userNamespace.route('/generate_exam_report')
+        class generate_exam_report(Resource):
+            reportData = api.model ("reportData",{'exam_instance_id':fields.String("")})
+            @api.doc(body=reportData)
+            def post(self):
+                """ @API Description: This API is used to generate end of exam report of ALL cases either reported or dismissed"""
+                status = None
+                msg = None
+                responseData = None
+                try:  
+                    data = request.json
+                    exam_instance_id = data['exam_instance_id']
+                    
+                    examCases =db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter_by(exam_instance_id=exam_instance_id).all()
+                    if examCases is None:
+                        raise NotFound
+                    responseData = {"cases": [] }
+                    for i in examCases:
+                        case_details = {"case_details": [{'case_id': i.case_id, 'exam_instance_id': i.exam_instance_id, 
+                        'stat':i.stat, 'confidence':str(i.confidence), 'ts': str(i.ts)}]}
+                        responseData['cases'].append(case_details)
+                    status = 'success'
+                    msg = "Report generated successfully!"
+                except KeyError:
+                    status = 'failed'
+                    msg = "Missing Parameter"  
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+
+                except NotFound:
+                    status = 'failed'
+                    msg = 'Exam Does not exist'
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
+                
+                except sqlalchemy.exc.IntegrityError as e:
+                    status = 'failed'
+                    msg = "Error" 
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))             
+                return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+
+####################################################################################################
+        @userNamespace.route('/get_recent_case')
+        class get_recent_case(Resource):
+            def get(self):
+                """ @API Description: This API is used to return the most recent case """
+                status = None
+                msg = None
+                responseData = None
+                try:                  
+                    examCases =db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter(and_(db.exam_instance_cases.stat !='C',db.exam_instance_cases.stat !="NC" ) ).order_by(db.exam_instance_cases.ts.desc()).first()
+                    
+                    if examCases is None:
+                        responseData = None
+                        msg = "No Recent Cases Detected"
+                    else:
+                        responseData = {"case_details": [{'case_id': examCases.case_id, 'exam_instance_id': examCases.exam_instance_id, 
+                        'stat':examCases.stat, 'confidence':str(examCases.confidence), 'ts': str(examCases.ts)}]}                   
+                        msg = 'Recent Case Retreived successfully'
+                    status = 'success'
+                except KeyError:
+                    msg = 'No Assigned Exam Instances found'
+                    status = 'failed'
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                except NotFound:
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+                except sqlalchemy.exc.IntegrityError as e:
+                    msg = 'No Assigned Exam Instances found'
+                    status = 'failed'
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+              
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+          

@@ -45,6 +45,11 @@ class AdminLevelAPIs:
             except sqlalchemy.exc.IntegrityError as e:
                 msg  ="User Already Exists"
                 return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+            except:
+                db.classroom_monitoring_db.session.rollback()
+                raise
+            finally:
+                db.classroom_monitoring_db.session.close()                
 
             return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
     #########################################################################
@@ -137,6 +142,7 @@ class AdminLevelAPIs:
                     status = 'failed'
                     msg = 'exam instance Already Exists'
                     return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+
                 return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 
     # ##############################################################    
@@ -236,7 +242,10 @@ class AdminLevelAPIs:
                         status = 'failed'
                         msg = "Missing Parameter"  
                         return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
-                
+                    except NotFound:
+                        status = 'failed'
+                        msg = 'Missing Data'
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
                     except sqlalchemy.exc.IntegrityError as e:
                         status = 'failed'
                         msg = "User Already Exists" 
@@ -244,3 +253,45 @@ class AdminLevelAPIs:
                     return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                
                     ###############################################################
+                    
+        @adminNamespace.route('/add_students_to_exam')
+        class add_students_to_exam (Resource):
+                addStudentsData = api.model ("addStudentsData",{'student_number':fields.Integer(),'exam_instance_id': fields.String("")})
+                @api.doc(body=addStudentsData)
+                def post(self):
+                    """ @API Description: This API is used to add students to specific exam instance """
+                    status = None
+                    msg = None
+                    responseData = None
+
+                    try:  
+                        data = request.json
+                        student_number = data['student_number']
+                        exam_instance_id = data['exam_instance_id']
+                        
+                        eid =db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id=exam_instance_id).first()
+                        snum = db.classroom_monitoring_db.session.query(db.students_positions).filter_by(student_number=student_number).first()
+                        if eid is None:
+                            raise NotFound
+                        if snum != None:
+                            raise sqlalchemy.exc.IntegrityError
+                        students_to_exam = db.students_positions(student_number = student_number,exam_instance_id = exam_instance_id)
+                        db.classroom_monitoring_db.session.add(students_to_exam)
+                        db.classroom_monitoring_db.session.commit()
+                        status = 'success'
+                        msg = "Student Added Successfully!"
+                    except KeyError:
+                        status = 'failed'
+                        msg = "Missing Parameter"  
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+
+                    except NotFound:
+                        status = 'failed'
+                        msg = 'Exam Doesnot exist'
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
+                 
+                    except sqlalchemy.exc.IntegrityError as e:
+                        status = 'failed'
+                        msg = "Student Already Exists" 
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))             
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))

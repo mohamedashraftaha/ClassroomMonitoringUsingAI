@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.exc import SQLAlchemyError
 from re import S
+from sqlalchemy import and_, or_, not_
 import re,boto3,os,sqlalchemy, json,secrets
 from flask import Flask, jsonify,redirect, session,url_for,render_template,request
 import hashlib, MySQLdb

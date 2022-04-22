@@ -12,4 +12,4 @@ if __name__ == '__main__':
     admin_level_api = adminController.AdminLevelAPIs()
     
     #DEBUG is SET to TRUE. CHANGE FOR PROD
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
