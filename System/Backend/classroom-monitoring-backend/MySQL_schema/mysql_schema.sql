@@ -53,7 +53,7 @@ ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE exam_instance_cases(
-case_id int NOT NULL AUTO_INCREMENT,
+case_id int,
 exam_instance_id VARCHAR(255) NOT NULL,
 stat VARCHAR(255) NOT NULL DEFAULT "Pending",
 confidence double NOT NULL,
@@ -64,8 +64,8 @@ ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE frames(
-image_link VARCHAR(255) NOT NULL PRIMARY KEY,
-case_id int NOT NULL,
+image_link VARCHAR(512) NOT NULL PRIMARY KEY,
+case_id int ,
 FOREIGN KEY (case_id) REFERENCES exam_instance_cases(case_id)
 ON UPDATE CASCADE ON DELETE CASCADE
 );

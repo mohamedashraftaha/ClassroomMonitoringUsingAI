@@ -49,7 +49,7 @@ class UserLevelAPIs:
 # ######################################################################
         @userNamespace.route('/create_possible_case')
         class create_possible_case(Resource):
-            CreateIncidentData = api.model ("CreateIncidentData",{'exam_instance_id':fields.String(""),\
+            CreateIncidentData = api.model ("CreateIncidentData",{'case_id':fields.Integer(),'exam_instance_id':fields.String(""),\
                 'stat':fields.String(""), 'confidence': fields.Float()})
             @api.doc(body=CreateIncidentData)
             def post(self):
@@ -59,13 +59,14 @@ class UserLevelAPIs:
                 responseData = None
                 try:   
                     data = request.json
+                    case_id = data['case_id']
                     examInstanceID = data['exam_instance_id']
                     state = data['stat']      
                     confidence = data['confidence']          
                     erid = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id= examInstanceID)
                     if erid is None:
                             raise NotFound
-                    newincident=db.exam_instance_cases(stat=state, exam_instance_id= examInstanceID, confidence = confidence)
+                    newincident=db.exam_instance_cases(case_id=case_id,stat=state, exam_instance_id= examInstanceID, confidence = confidence)
                     db.classroom_monitoring_db.session.add(newincident)
                     db.classroom_monitoring_db.session.commit()
                     status = 'success'
@@ -206,8 +207,11 @@ class UserLevelAPIs:
                         # client.download_file(bucket, 'c{}-{}.jpg'.format(temp,i), './c{}-{}.jpg'.format(temp,i))
                                 url = client.generate_presigned_url('get_object',Params={ 'Bucket': bucket, 'Key': 'c{}-{}.jpg'.format(temp,i+1) }, HttpMethod="GET",ExpiresIn=9800)   
                                 erid = db.classroom_monitoring_db.session.query(db.frames).filter_by(case_id= caseID)
+                                cid = db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter_by(case_id= caseID)
                                 if erid is None:
-                                    raise NotFound   
+                                    raise NotFound 
+                                if cid is None:
+                                    raise NotFound  
                                 print(url)
                                 urlList.append(url)
                                 print('success{}'.format(i+1))
@@ -231,6 +235,16 @@ class UserLevelAPIs:
                     msg = 'Frames Already exists'       
                     print(e.args)
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
+                except sqlalchemy.exc.PendingRollbackError as e:     
+                    print("HERE2")
+                    status = 'failed'
+                    msg = 'Case ID Does Not exist'      
+                    urlList  = None
+                    db.classroom_monitoring_db.session.rollback()
+                    print(e.args)
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
+                
+                
                 except:
                     db.classroom_monitoring_db.session.rollback()
                     raise
