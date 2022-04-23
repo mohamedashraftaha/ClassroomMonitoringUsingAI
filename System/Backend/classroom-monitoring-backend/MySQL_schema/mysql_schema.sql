@@ -15,6 +15,7 @@ ts datetime default current_timestamp ,
 school_name VARCHAR(255) NOT NULL,
 admin_national_id VARCHAR(255) NOT NULL,
 camera_static_ip VARCHAR(255) NOT NULL,
+fps int NOT NULL DEFAULT 30,
 FOREIGN KEY (admin_national_id) REFERENCES admin(national_id)
 ON UPDATE CASCADE ON DELETE CASCADE
 );

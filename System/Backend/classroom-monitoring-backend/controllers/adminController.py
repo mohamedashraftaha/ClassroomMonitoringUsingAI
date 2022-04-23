@@ -105,7 +105,7 @@ class AdminLevelAPIs:
             examInstanceData = api.model ("examInstanceData",{'exam_instance_id':fields.String(""),\
                 'exam_reference_code':fields.String(""),\
                     'school_name':fields.String(""), 'admin_national_id':fields.String(""),\
-                        'camera_static_ip':fields.String("")})
+                        'camera_static_ip':fields.String(""), 'fps':fields.Integer()})
             @api.doc(body = examInstanceData)
             def post(self):               
                 """ @API Description: This API is used to Create Exam Instance """
