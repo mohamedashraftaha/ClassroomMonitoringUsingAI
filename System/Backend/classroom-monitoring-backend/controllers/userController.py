@@ -28,7 +28,8 @@ class UserLevelAPIs:
                     if user is None:
                         raise NotFound
                     if db_pass != user.passwd:
-                        raise NotFound
+                        raise IncorrectData
+
                     status = 'success'
                     msg = "Proctor logged in successfully!"
                 except KeyError:
@@ -40,6 +41,11 @@ class UserLevelAPIs:
                     status = 'failed'
                     msg= "User Not Found"
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data':responseData}))
+                except IncorrectData:
+                    status = 'failed'
+                    msg = "Password needs to include Minimum eight characters, at least one letter, one number and one special character"
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
+
                 except sqlalchemy.exc.IntegrityError as e:
                     status = 'failed'
                     msg= "User Already Exists"
@@ -77,7 +83,7 @@ class UserLevelAPIs:
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except NotFound:
                     status = 'failed'
-                    msg = 'Invalid!'
+                    msg = 'Exam Incident Doesnot exist'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
                     status = 'failed'
@@ -310,13 +316,13 @@ class UserLevelAPIs:
                         filter_by(proctor_national_id = proctor_national_id).first()
                         
                     if exam_instance is None:
-                        msg = 'No Assigned Exam Instances to this user'
+                        msg = 'Exam Instance ID'
                         status = 'failed'
                         raise NotFound   
                     if exam_instance.exam_instance_id != exam_instance_id:
                         msg = 'No Assigned Exam Instances to this user'
                         status = 'failed'        
-                        raise NotFound                   
+                        raise IncorrectData                   
                     db.classroom_monitoring_db.session.query(db.proctor_monitor_exam).\
                     filter_by(proctor_national_id=proctor_national_id).\
                     update({'model_sensitivity':model_sensitivity})
@@ -329,6 +335,9 @@ class UserLevelAPIs:
                     return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 except NotFound:
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+                except IncorrectData:
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+
                 except sqlalchemy.exc.IntegrityError as e:
                     msg = 'No Assigned Exam Instances to this user'
                     status = 'failed'
@@ -404,7 +413,7 @@ class UserLevelAPIs:
                         if eid is None:
                             raise NotFound
                         if snum is None:
-                             raise NotFound
+                             raise IncorrectData
                          
                          
                         db.classroom_monitoring_db.session.query(db.students_positions).\
@@ -420,9 +429,13 @@ class UserLevelAPIs:
 
                     except NotFound:
                         status = 'failed'
-                        msg = 'Exam/Student Does not exist'
+                        msg = 'Exam Doesnot exist'
                         return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
-                 
+                    except IncorrectData:
+                        status = 'failed'
+                        msg = 'Student Does not exist'
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
+                                  
                     except sqlalchemy.exc.IntegrityError as e:
                         status = 'failed'
                         msg = "Location Already Exists" 

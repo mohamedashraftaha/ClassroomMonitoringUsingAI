@@ -7,3 +7,6 @@ class Error(Exception):
 ## user defined exceptions
 class NotFound(Error):
     pass
+
+class IncorrectData(Error):
+    pass

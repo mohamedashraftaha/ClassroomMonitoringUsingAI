@@ -26,7 +26,7 @@ class AdminLevelAPIs:
                 status = 'success'     
                 if not re.match(r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$",password):
                     msg = "Password needs to include Minimum eight characters, at least one letter, one number and one special character"
-                    raise NotFound
+                    raise IncorrectData
                 salt = password + app.config['SECRET_KEY']
                 db_pass = hashlib.md5(salt.encode()).hexdigest()
                 newAdmin = db.admin(national_id = NationalID, passwd= db_pass, first_name=FirstName,\
@@ -38,8 +38,8 @@ class AdminLevelAPIs:
                 msg = 'Missing Parameter'
                 status = 'failed'
                 return json.loads(json.dumps({'status': status, 'msg':msg, 'data': responseData}))
-            except NotFound:
-                msg = 'User Not Found'
+            except IncorrectData:
+                msg = 'Password Doesnot meet the minimum requirements. Password needs to include Minimum eight characters, at least one letter, one number and one special character'
                 status = 'failed'
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
             except sqlalchemy.exc.IntegrityError as e:
@@ -74,7 +74,7 @@ class AdminLevelAPIs:
                     if user is None:
                         raise NotFound
                     if db_pass != user.passwd:
-                        raise NotFound
+                        raise IncorrectData
                     status= 'Success'
                     msg = 'Admin logged in successfully!'
                     
@@ -86,6 +86,10 @@ class AdminLevelAPIs:
                 except NotFound:
                     status= 'failed'
                     msg = 'User Not Found'                   
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                except IncorrectData:
+                    status= 'failed'
+                    msg = 'Password Doesnot meet the minimum requirements. Password needs to include Minimum eight characters, at least one letter, one number and one special character'                   
                     return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 
                 except sqlalchemy.exc.IntegrityError as e:
@@ -227,8 +231,7 @@ class AdminLevelAPIs:
                         LastName = data['last_name']
                         SchoolName = data['school_name']
                         if not re.match(r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$",password):
-                            msg = "Password needs to include Minimum eight characters, at least one letter, one number and one special character"
-                            raise NotFound
+                            raise IncorrectData
                         salt = password + app.config['SECRET_KEY']
                         db_pass = hashlib.md5(salt.encode()).hexdigest()
                         new_proctor = db.proctor(national_id = NationalID, passwd= db_pass, first_name=FirstName,\
@@ -242,9 +245,9 @@ class AdminLevelAPIs:
                         status = 'failed'
                         msg = "Missing Parameter"  
                         return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
-                    except NotFound:
+                    except IncorrectData:
                         status = 'failed'
-                        msg = 'Missing Data'
+                        msg = "Password needs to include Minimum eight characters, at least one letter, one number and one special character"
                         return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
                     except sqlalchemy.exc.IntegrityError as e:
                         status = 'failed'
@@ -269,11 +272,11 @@ class AdminLevelAPIs:
                         student_number = data['student_number']
                         exam_instance_id = data['exam_instance_id']
                         eid =db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id=exam_instance_id).first()
-                        snum = db.classroom_monitoring_db.session.query(db.students_positions).filter_by(student_number=student_number).first()
+                        snum = db.classroom_monitoring_db.session.query(db.students_positions).filter(and_(db.students_positions.student_number== student_number,db.students_positions.exam_instance_id==exam_instance_id) ).first()
                         if eid is None:
                             raise NotFound
                         if snum != None:
-                            raise NotFound
+                            raise IncorrectData
                         students_to_exam = db.students_positions(student_number = student_number,exam_instance_id = exam_instance_id)
                         db.classroom_monitoring_db.session.add(students_to_exam)
                         db.classroom_monitoring_db.session.commit()
@@ -286,8 +289,13 @@ class AdminLevelAPIs:
 
                     except NotFound:
                         status = 'failed'
-                        msg = 'Exam Doesnot/ Sudent Already exist'
+                        msg = 'Exam Doesnot exist'
                         return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
+                    except IncorrectData:
+                        status = 'failed'
+                        msg = 'Sudent Already exist'
+                        return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))                
+
                  
                     except sqlalchemy.exc.IntegrityError as e:
                         status = 'failed'
