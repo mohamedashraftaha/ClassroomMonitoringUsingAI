@@ -34,8 +34,18 @@ class ProcessingStudent:
             hogImage = self.hog(studentCrop)
             confValues.append(np.argmax(self.loaded_model.predict(hogImage)))
 
-    #     scoring method here
-    #     send to bucket
+        q75, q25 = np.percentile(confValues, [75, 25])
+        iqr = q75 - q25
+        low = q25 - (1.5 * iqr)
+        up = q75 + (1.5 * iqr)
+        filteredConfValues = []
+        for i in range(len(confValues)):
+            if (confValues[i] >= low) and (confValues[i] <= up):
+                filteredConfValues.append(confValues[i])
+        avgConf = np.average(filteredConfValues)
+
+        if(avgConf >= self.sensitivity):
+            # send to bucket
 
 
     def runThreading(self, frames):
