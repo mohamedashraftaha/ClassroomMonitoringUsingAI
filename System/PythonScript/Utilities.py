@@ -51,3 +51,12 @@ class Utilities:
         predictedObjects, bBoxLocations, classIDs, convValues = self.findObjects(self, outputs, THRESH, SUP_THRESH)
         finalLocationsInFrame = self.showDetectedImages(self, frame, predictedObjects, bBoxLocations, classIDs, convValues, originalW / 320, originalH / 320)
         return finalLocationsInFrame
+
+    def imwriteToJPG(self, images, classInstance, studentNumber, studentsCheatingInstance):
+        fileNames = []
+        for image in images:
+            fileName = "studentFrame" + "_" + classInstance + "_" + studentNumber + "_" + studentsCheatingInstance + ".jpg"
+            fileNames.append(fileName)
+            cv2.imwrite(fileName, image)
+            studentsCheatingInstance = studentsCheatingInstance + 1
+        return fileNames, studentsCheatingInstance
