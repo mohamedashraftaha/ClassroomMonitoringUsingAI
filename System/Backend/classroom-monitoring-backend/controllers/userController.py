@@ -216,7 +216,7 @@ class UserLevelAPIs:
                     for i in range(j):
                         try: 
                         # client.download_file(bucket, 'c{}-{}.jpg'.format(temp,i), './c{}-{}.jpg'.format(temp,i))
-                                url = client.generate_presigned_url('get_object',Params={ 'Bucket': bucket, 'Key': 'c{}-{}.jpg'.format(temp,i+1) }, HttpMethod="GET",ExpiresIn=9800)   
+                                url = client.generate_presigned_url('get_object',Params={ 'Bucket': bucket, 'Key': 'c{}-{}-{}.jpg'.format(temp,exam_instance_id,i+1) }, HttpMethod="GET",ExpiresIn=9800)   
                                 print(url)
                                 urlList.append(url)
                                 print('success{}'.format(i+1))
