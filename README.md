@@ -33,6 +33,8 @@ Department of Computer Science and Engineering
    Developing a classroom monitoring system using AI to detect possible cheating incidents during examinations that creates fair and safe examination environment 
 
 # System
+![image](https://user-images.githubusercontent.com/75078872/165158725-f17ffb51-9407-4484-984a-53e3de802e66.png)
+
 
 ## Software Requirements
 * Python>=3.8
