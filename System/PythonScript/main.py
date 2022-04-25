@@ -1,12 +1,52 @@
-import ProcessingStudent
+#import ProcessingStudent
 import os
 import Utilities
 from threading import Thread
 import cv2
+import getopt
+import sys
+import requests
+##########################
 
-########################################################################################################################
-frameRate = 24
-sensitivity = 5
+
+
+sensitivity = None
+frameRate = None
+exam_instance_id = None
+def examVariables():
+    """@brief: This function is responsible for retrieving sensitivity, exam instance id & fps"""
+    sensitivity_arg = None
+    exam_instance_id_arg = None
+    fps = None
+    argv = sys.argv[1:]
+    try:
+        opts , args= getopt.getopt(argv, 's:e:')        
+    except getopt.GetoptError as e:
+        # Print a message or do something useful
+        print(e)
+        print('Something went wrong!')
+        sys.exit(2)
+    
+    ## getting arguments from the frontend
+    # -s -> Sensitivity
+    # -e -> exam instance id    
+    for option, argument in opts:
+            # if the option is sensitivity
+        if option == '-s':
+            sensitivity_arg = argument
+        
+        # if the option is exam_instance_id 
+        if option == '-e':
+            exam_instance_id_arg = argument
+
+    exam_id_temp = exam_instance_id_arg
+    # getting the fps value
+    response = requests.get(f"http://classroommonitoring.herokuapp.com/api/user/get_fps/{exam_id_temp}")
+    fps = response.json()['data']
+    
+    return sensitivity_arg, fps, exam_instance_id_arg
+    ########################################################################################################################
+
 ########################################################################################################################
 utils = Utilities
 
@@ -37,21 +77,25 @@ def yolo2sec():
             maxLocations = tempLocations
     return maxLocations
 
-########################################################################################################################
-########################################################################################################################
+# ########################################################################################################################
+# ########################################################################################################################
 
-gatherFrames = Thread(target = retrieveFrames, args = ("/Users/marwanawad1/Downloads/file_example_MP4_480_1_5MG.mp4",) )
-gatherFrames.start()
 
-studentLocations = yolo2sec()
-# send studentLocations to backend here
+if __name__ == "__main__":
+    
+    sensitivity, frameRate, exam_instance_id = examVariables()
+    gatherFrames = Thread(target = retrieveFrames, args = ("/Users/marwanawad1/Downloads/file_example_MP4_480_1_5MG.mp4",) )
+    gatherFrames.start()
 
-processing = ProcessingStudent(studentLocations, sensitivity)
-frameCount = frameCount + 1
+    studentLocations = yolo2sec()
+    # send studentLocations to backend here
 
-while(feedEnd == False):
-    if(frameCount % frameRate == 0):
-        processing.runThreading(allImages[frameCount - frameRate: frameCount])
-        # processing.runSequential(allImages[frameCount - frameRate: frameCount])
-
+    processing = ProcessingStudent(studentLocations, se)
     frameCount = frameCount + 1
+
+    while(feedEnd == False):
+        if(frameCount % frameRate == 0):
+            processing.runThreading(allImages[frameCount - frameRate: frameCount])
+            # processing.runSequential(allImages[frameCount - frameRate: frameCount])
+
+        frameCount = frameCount + 1
