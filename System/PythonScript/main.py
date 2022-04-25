@@ -1,8 +1,8 @@
 #import ProcessingStudent
 import os
-import Utilities
+#import Utilities
 from threading import Thread
-import cv2
+#import cv2
 import getopt
 import sys
 import requests
@@ -48,7 +48,7 @@ def examVariables():
     ########################################################################################################################
 
 ########################################################################################################################
-utils = Utilities
+#utils = Utilities
 
 YOLO_THRESH = 0.5
 YOLO_SUPPRESSION_THRESH = 0.3
@@ -82,20 +82,26 @@ def yolo2sec():
 
 
 if __name__ == "__main__":
-    
-    sensitivity, frameRate, exam_instance_id = examVariables()
-    gatherFrames = Thread(target = retrieveFrames, args = ("/Users/marwanawad1/Downloads/file_example_MP4_480_1_5MG.mp4",) )
-    gatherFrames.start()
+    i = 1
+    while(1):
+        print("Model Started Successfully")
+        sensitivity, frameRate, exam_instance_id = examVariables()
+        print(sensitivity, frameRate , exam_instance_id)
+        i+=1
+        if i ==10:
+            sys.exit("Error")
+    # gatherFrames = Thread(target = retrieveFrames, args = ("/Users/marwanawad1/Downloads/file_example_MP4_480_1_5MG.mp4",) )
+    # gatherFrames.start()
 
-    studentLocations = yolo2sec()
+#    studentLocations = yolo2sec()
     # send studentLocations to backend here
 
-    processing = ProcessingStudent(studentLocations, se)
-    frameCount = frameCount + 1
+    # processing = ProcessingStudent(studentLocations, se)
+    # frameCount = frameCount + 1
 
-    while(feedEnd == False):
-        if(frameCount % frameRate == 0):
-            processing.runThreading(allImages[frameCount - frameRate: frameCount])
-            # processing.runSequential(allImages[frameCount - frameRate: frameCount])
+    # while(feedEnd == False):
+    #     if(frameCount % frameRate == 0):
+    #         processing.runThreading(allImages[frameCount - frameRate: frameCount])
+    #         # processing.runSequential(allImages[frameCount - frameRate: frameCount])
 
-        frameCount = frameCount + 1
+    #     frameCount = frameCount + 1
