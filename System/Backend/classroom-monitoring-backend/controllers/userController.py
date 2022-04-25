@@ -184,10 +184,10 @@ class UserLevelAPIs:
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 ################################################################
 
-        @userNamespace.route('/get_frames_links/<string:caseID>')
+        @userNamespace.route('/get_frames_links/<int:caseID>/<string:exam_instance_id>')
         class get_frames_links(Resource):
             @cross_origin()
-            def get(self, caseID):
+            def get(self, caseID, exam_instance_id):
                 """ @API Description: This API is used to retrieve links of the frames of a given cheating incident """
                 urlList  = []
                 status = None
@@ -205,16 +205,13 @@ class UserLevelAPIs:
                     mybucket=s3.Bucket(bucket)
                     status = 'success'
                     msg = 'frames retrieved successfully'
-                    cid = db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter_by(case_id= caseID).first()
-                    erid = db.classroom_monitoring_db.session.query(db.frames).filter_by(case_id= caseID).first()
-                    if erid is None:
+                    checker = db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter(and_(db.exam_instance_cases.case_id== caseID, db.exam_instance_cases.exam_instance_id == exam_instance_id)).first()
+                    if checker is None:
                         raise NotFound 
-   
-                    if cid is None:
-                        raise NotFound  
+ 
                            
                     for i in mybucket.objects.all():
-                        if str(i.key) == str('c{}-{}.jpg'.format(temp,j+1)):
+                        if str(i.key) == str('c{}-{}-{}.jpg'.format(temp,exam_instance_id,j+1)):
                             j+=1
                     for i in range(j):
                         try: 
@@ -235,12 +232,12 @@ class UserLevelAPIs:
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))              
                 except NotFound:
                     status = 'failed'
-                    msg = 'Case ID Doesnot Exist'
+                    msg = 'Case/Exam ID does not Exist'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
                 except sqlalchemy.exc.IntegrityError as e:
                     print("HERE2")
                     status = 'failed'
-                    msg = 'Frames Already exists'       
+                    msg = 'frames already exists'       
                     print(e.args)
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': urlList}))
                 except sqlalchemy.exc.PendingRollbackError as e:     
@@ -482,15 +479,21 @@ class UserLevelAPIs:
                 return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
 
 ####################################################################################################
-        @userNamespace.route('/get_recent_case')
+        @userNamespace.route('/get_recent_case/<string:exam_instance_id>')
         class get_recent_case(Resource):
-            def get(self):
+            def get(self, exam_instance_id):
                 """ @API Description: This API is used to return the most recent case """
                 status = None
                 msg = None
                 responseData = None
-                try:                  
-                    examCases =db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter(and_(db.exam_instance_cases.stat !='C',db.exam_instance_cases.stat !="NC" ) ).order_by(db.exam_instance_cases.ts.desc()).first()
+                try:                 
+                    
+                    exam = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id=exam_instance_id).first()
+                    if exam is None:
+                        msg = 'Exam not found'
+                        status = 'failed'
+                        raise NotFound
+                    examCases =db.classroom_monitoring_db.session.query(db.exam_instance_cases).filter(and_(db.exam_instance_cases.exam_instance_id== exam_instance_id,db.exam_instance_cases.stat !='C',db.exam_instance_cases.stat !="NC" ) ).order_by(db.exam_instance_cases.ts.desc()).first()
                     
                     if examCases is None:
                         responseData = None
