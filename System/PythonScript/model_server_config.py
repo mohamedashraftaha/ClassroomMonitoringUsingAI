@@ -6,7 +6,7 @@ app = Flask(__name__)
 @app.route('/runmodel/<sensitivity>/<exam_instance_id>')
 @cross_origin()
 def runmodel(sensitivity,  exam_instance_id):
-    process = subprocess.Popen(["python3","test.py","-s", f"{sensitivity}", "-e", f"{exam_instance_id}"], stdout= subprocess.PIPE)
+    process = subprocess.Popen(["python3","main.py","-s", f"{sensitivity}", "-e", f"{exam_instance_id}"], stdout= subprocess.PIPE)
     x = process.communicate()[0]
     return x.decode()
 if __name__ == '__main__':
