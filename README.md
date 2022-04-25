@@ -35,6 +35,15 @@ Department of Computer Science and Engineering
 # System
 
 ## Software Requirements
+* Python>=3.8
+* Flask
+* ElectronJS
+* Npm
+* MySQL
+* MySQL Workbench
+* AWS S3 Bucket
+* AWS EC2
+
 
 ## System Communication Diagram
 
