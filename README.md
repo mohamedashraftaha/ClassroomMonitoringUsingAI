@@ -35,7 +35,6 @@ Department of Computer Science and Engineering
 # System
 ![image](https://user-images.githubusercontent.com/75078872/165158725-f17ffb51-9407-4484-984a-53e3de802e66.png)
 
-
 ## Software Requirements
 * Python>=3.8
 * Flask
@@ -45,6 +44,12 @@ Department of Computer Science and Engineering
 * MySQL Workbench
 * AWS S3 Bucket
 * AWS EC2
+
+## System Workflow
+
+![systemWorkflow drawio](https://user-images.githubusercontent.com/75078872/165160857-1dfc9138-f4d7-4527-8351-b1121b8b3656.svg)
+
+
 
 
 ## System Communication Diagram
