@@ -32,6 +32,23 @@ Department of Computer Science and Engineering
 ## Proposed Solution
    Developing a classroom monitoring system using AI to detect possible cheating incidents during examinations that creates fair and safe examination environment 
 
+# System
+
+## Software Requirements
+
+## System Communication Diagram
+
+
+![SystemCommunicationDiagram drawio](https://user-images.githubusercontent.com/75078872/165157241-eebba353-be3c-42dd-b92c-69923682d2e7.png)
+
+[SystemCommunicationDiagram.drawio.pdf](https://github.com/mohamedashraftaha/ClassroomMonitoringUsingAI/files/8557313/SystemCommunicationDiagram.drawio.pdf)
+
+## Frontend
+
+## Backend
+
+## Model
+
 
   
 
