@@ -1,7 +1,15 @@
 Classroom Monitoring using AI - Backend
 
+## Tools
+* Python
+* Flask
+* MySQL
+* MySQL Workbench
+* AWS S3 Bucket
+* OpenAPI Specification "Swagger"
+
 ## Entity-Relationship Diagram
-![SystemDB-ERD-Copy of chen'sNotation drawio](https://user-images.githubusercontent.com/75078872/161384383-e91ad16c-689c-496a-b1c5-54777b168c3c.png)
+![SystemDB-ERD-Copy of chen'sNotation drawio](https://user-images.githubusercontent.com/75078872/165162620-17b249e5-99e9-4fab-af45-e1df53949511.svg)
 
 
 ## Relational Model
@@ -28,111 +36,27 @@ Classroom Monitoring using AI - Backend
     -- /api/admin/create_exam_instance
     -- /api/admin/assign_proctor_to_exam
     -- /api/admin/register_proctor
-  ### User-level APIs
-    -- /api/user/login_proctor
-    -- /api/user/get_assigned_exams/<string:proctor_national_id>
+    -- /api/admin/add_students_to_exam
+    
+
+### User-level APIs
+    -- /api/user/add_students_locations
     -- /api/user/assign_model_sensitivity
-    -- /api/user/create_possible_case
-    -- /api/user/report_case
     -- /api/user/dismiss_case
-    -- /api/user/get_frames_links/<string:caseID>
-    -- /api/user/get_exam_instance_details/<string:examInstanceID>
+    -- /api/user/generate_exam_report
+    -- /api/user/get_assigned_exams/{proctor_national_id}
+    -- /api/user/get_exam_instance_details/{examInstanceID}
+    -- /api/user/get_fps/{exam_instance_id}
+    -- /api/user/get_frames_links/{caseID}/{exam_instance_id}
+    -- /api/user/get_recent_case/{exam_instance_id}
+    -- /api/user/login_proctor
+    -- /api/user/report_case
+    
+
 
   ## APIs Detailed Description
-    
-    ##N.B: Response_data will be returned in all cases, in the cases when no data is returned it will be None. We just added it to maintain consistency to the response payload
-    
-    A. -- /api/user/login_proctor
-      -- Request Body: 
-      {
-        "national_id": "",
-        "password":""
-      }
-      -- Response
-        {
-          'status': status, 'msg': msg, 'data': responseData
-        }
-      
-
-    B.-- /api/user/get_assigned_exams/<string:proctor_national_id>
-      -- Request Body:
-      {}
-      # Nothing in the request body, proctor_national_id is passed in the url
-      -- Response
-        {
-          'status': status, 'msg': msg, 'data': responseData
-        }
-   
-    C.-- /api/user/assign_model_sensitivity
-      -- Request Body:
-      {
-        "proctor_national_id":"",
-        "exam_instance_id":"",
-        "model_sensitivity":""
-      }
-      -- Response
-        {
-          'status': status, 'msg': msg, 'data': responseData
-        }
-   
-
-    D-- /api/user/create_possible_case
-      -- Request Body:
-      {
-        "exam_instance_id":"",
-        "stat":""
-      }
-      -- Response
-        {
-          'status': status, 'msg': msg, 'data': responseData
-        }
-   
-
-
-    E-- /api/user/report_case
-      -- Request Body:
-      {
-        "caseID":""
-      }
-      -- Response
-        {
-          'status': status, 'msg': msg, 'data': responseData
-        }
-   
-
-    F-- /api/user/dismiss_case
-      -- Request Body:
-        {
-          "caseID":""
-        }
-
-      -- Response
-        {
-          'status': status, 'msg': msg, 'data': responseData
-        }
-   
-
-
-    G-- /api/user/get_frames_links/<string:caseID>
-      -- Request Body:
-      {}
-      # Nothing in the request body, proctor_national_id is passed in the url
-
-      -- Response
-        {
-          'status': status, 'msg': msg, 'data': responseData
-        }
-   
-
-    H--   api/user/get_exam_instance_details/<string:examInstanceID>
-      -- Request Body:
-      {}
-      # Nothing in the request body, examInstanceID is passed in the url
-
-      -- Response
-        {
-          'status': status, 'msg': msg, 'data': responseData
-        }
+  
+  http://classroommonitoring.herokuapp.com/
    
 
   

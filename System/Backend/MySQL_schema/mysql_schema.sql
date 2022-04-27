@@ -53,23 +53,7 @@ FOREIGN KEY (exam_instance_id) REFERENCES admin_assign_proctor(exam_instance_id)
 ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-CREATE TABLE exam_instance_cases(
-case_id int,
-exam_instance_id VARCHAR(255) NOT NULL,
-stat VARCHAR(255) NOT NULL DEFAULT "Pending",
-confidence double NOT NULL,
-ts datetime default current_timestamp,
-PRIMARY KEY(case_id, exam_instance_id),
-FOREIGN KEY (exam_instance_id) REFERENCES exam_instance(exam_instance_id)
-ON UPDATE CASCADE ON DELETE CASCADE
-);
 
-CREATE TABLE frames(
-image_link VARCHAR(512) NOT NULL PRIMARY KEY,
-case_id int ,
-FOREIGN KEY (case_id) REFERENCES exam_instance_cases(case_id)
-ON UPDATE CASCADE ON DELETE CASCADE
-);
 
 CREATE TABLE students_positions(
 student_number int NOT NULL ,
@@ -79,6 +63,33 @@ y double NOT NULL DEFAULT 0.0,
 w double NOT NULL DEFAULT 0.0,
 h double NOT NULL DEFAULT 0.0,
 PRIMARY KEY(student_number, exam_instance_id),
+FOREIGN KEY (exam_instance_id) REFERENCES exam_instance(exam_instance_id)
+ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE exam_instance_cases(
+case_id int,
+exam_instance_id VARCHAR(255) NOT NULL,
+stat VARCHAR(255) NOT NULL DEFAULT "Pending",
+confidence double NOT NULL,
+student_number int NOT NULL,
+ts datetime default current_timestamp,
+PRIMARY KEY(case_id, exam_instance_id),
+FOREIGN KEY (exam_instance_id) REFERENCES exam_instance(exam_instance_id)
+ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE frames(
+image_link VARCHAR(512) NOT NULL PRIMARY KEY,
+case_id int ,
+student_number int,
+exam_instance_id VARCHAR(255) NOT NULL,
+FOREIGN KEY (student_number) REFERENCES students_positions(student_number)
+ON UPDATE CASCADE ON DELETE CASCADE,
+FOREIGN KEY (case_id) REFERENCES exam_instance_cases(case_id)
+ON UPDATE CASCADE ON DELETE CASCADE,
 FOREIGN KEY (exam_instance_id) REFERENCES exam_instance(exam_instance_id)
 ON UPDATE CASCADE ON DELETE CASCADE
 );

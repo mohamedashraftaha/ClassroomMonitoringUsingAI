@@ -254,7 +254,7 @@ class AdminLevelAPIs:
                     
         @adminNamespace.route('/add_students_to_exam')
         class add_students_to_exam (Resource):
-                addStudentsData = api.model ("addStudentsData",{'student_number':fields.Integer(),'exam_instance_id': fields.String("")})
+                addStudentsData = api.model ("addStudentsData",{'exam_instance_id': fields.String("")})
                 @api.doc(body=addStudentsData)
                 def post(self):
                     """ @API Description: This API is used to add students to specific exam instance """
@@ -264,23 +264,19 @@ class AdminLevelAPIs:
 
                     try:  
                         data = request.json
-                        student_number = data['student_number']
                         exam_instance_id = data['exam_instance_id']
                         eid =db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id=exam_instance_id).first()
-                        snum = db.classroom_monitoring_db.session.query(db.students_positions).filter(and_(db.students_positions.student_number== student_number,db.students_positions.exam_instance_id==exam_instance_id) ).first()
                         if eid is None:
                             status = 'failed'
                             msg = 'Exam Doesnot exist'                            
                             raise NotFound
-                        if snum != None:
-                            status = 'failed'
-                            msg = 'Sudent Already exist'
-                            raise NotFound
-                        students_to_exam = db.students_positions(student_number = student_number,exam_instance_id = exam_instance_id)
-                        db.classroom_monitoring_db.session.add(students_to_exam)
+                        
+                        for i in range (1,16): 
+                            students_to_exam = db.students_positions(student_number = i,exam_instance_id = exam_instance_id)
+                            db.classroom_monitoring_db.session.add(students_to_exam)
                         db.classroom_monitoring_db.session.commit()
                         status = 'success'
-                        msg = "Student Added Successfully!"
+                        msg = "Students Added Successfully!"
                     except KeyError:
                         status = 'failed'
                         msg = "Missing Parameter"  

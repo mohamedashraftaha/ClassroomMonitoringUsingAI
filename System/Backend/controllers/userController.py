@@ -50,7 +50,7 @@ class UserLevelAPIs:
         @userNamespace.route('/create_possible_case')
         class create_possible_case(Resource):
             CreateIncidentData = api.model ("CreateIncidentData",{'case_id':fields.Integer(),'exam_instance_id':fields.String(""),\
-                'stat':fields.String(""), 'confidence': fields.Float()})
+                'student_number':fields.Integer(),'stat':fields.String(""), 'confidence': fields.Float()})
             @api.doc(body=CreateIncidentData)
             def post(self):
                 """ @API Description: This API is used to CreateIncident """                        
@@ -62,17 +62,27 @@ class UserLevelAPIs:
                     case_id = data['case_id']
                     examInstanceID = data['exam_instance_id']
                     state = data['stat']      
-                    confidence = data['confidence']          
-                    erid = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id= examInstanceID)
+                    confidence = data['confidence']   
+                    student_number = data['student_number']       
+                    erid = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id= examInstanceID).first()
+                    snum = db.classroom_monitoring_db.session.query(db.students_positions).filter_by(student_number=student_number).first()
                     if erid is None:
                         status = 'failed'
-                        msg = 'Exam Incident Doesnot exist'
+                        msg = 'exam incident does not exist'
                         raise NotFound
-                    newincident=db.exam_instance_cases(case_id=case_id,stat=state, exam_instance_id= examInstanceID, confidence = confidence)
+                    
+                    if snum is None:
+                        status = 'failed'
+                        msg = 'student number does not exist'
+                        raise NotFound
+                    
+                    
+                    newincident=db.exam_instance_cases(case_id=case_id,stat=state, exam_instance_id= examInstanceID, confidence = confidence, \
+                        student_number=student_number)
                     db.classroom_monitoring_db.session.add(newincident)
                     db.classroom_monitoring_db.session.commit()
                     status = 'success'
-                    msg = 'Incident Completed Successfully!'
+                    msg = 'incident completed successfully!'
                 except KeyError:
                     status = 'failed'
                     msg = 'Missing Parameter'
@@ -80,6 +90,7 @@ class UserLevelAPIs:
                 except NotFound:
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
                 except sqlalchemy.exc.IntegrityError as e:
+                    print(e)
                     status = 'failed'
                     msg = 'Incident Already Exists or not found'
                     return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
@@ -170,10 +181,10 @@ class UserLevelAPIs:
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
 ################################################################
 
-        @userNamespace.route('/get_frames_links/<int:caseID>/<string:exam_instance_id>')
+        @userNamespace.route('/get_frames_links/<int:caseID>/<string:exam_instance_id>/<int:student_number>')
         class get_frames_links(Resource):
             @cross_origin()
-            def get(self, caseID, exam_instance_id):
+            def get(self, caseID, exam_instance_id, student_number):
                 """ @API Description: This API is used to retrieve links of the frames of a given cheating incident """
                 urlList  = []
                 status = None
@@ -191,13 +202,13 @@ class UserLevelAPIs:
                         status = 'failed'
                         msg = 'Case/Exam ID does not Exist'
                         raise NotFound 
-                    cases = f"c{caseID}-{exam_instance_id}"
+                    cases = f"c{caseID}-{exam_instance_id}-{student_number}"
                     keys = [i.key for i in mybucket.objects.all()]
                     case_frames = [key for key in keys  if cases in key]
                     for i in range(len(case_frames)):
                         url = client.generate_presigned_url('get_object',Params={ 'Bucket': bucket, 'Key': case_frames[i] }, HttpMethod="GET",ExpiresIn=9800)   
                         urlList.append(url)
-                        newframe=db.frames(image_link=url, case_id= caseID)
+                        newframe=db.frames(image_link=url, case_id= caseID, exam_instance_id=exam_instance_id, student_number=student_number)
                         db.classroom_monitoring_db.session.add(newframe)
                         db.classroom_monitoring_db.session.commit()
                 except KeyError:
@@ -417,8 +428,12 @@ class UserLevelAPIs:
                         raise NotFound
                     responseData = {"cases": [] }
                     for i in examCases:
+                        case_detailed_data = db.classroom_monitoring_db.session.query(db.frames).filter(\
+                           and_(db.frames.exam_instance_id==exam_instance_id,db.frames.student_number==i.student_number, \
+                               db.frames.case_id == i.case_id)).first()
                         case_details = {"case_details": [{'case_id': i.case_id, 'exam_instance_id': i.exam_instance_id, 
-                        'stat':i.stat, 'confidence':str(i.confidence), 'ts': str(i.ts)}]}
+                        'stat':i.stat, 'confidence':str(i.confidence), 'ts': str(i.ts),  'student_number':i.student_number,    \
+                            'case_image': case_detailed_data.image_link}]}
                         responseData['cases'].append(case_details)
                     status = 'success'
                     msg = "Report generated successfully!"
@@ -457,7 +472,7 @@ class UserLevelAPIs:
                         msg = "No Recent Cases Detected"
                     else:
                         responseData = {"case_details": [{'case_id': examCases.case_id, 'exam_instance_id': examCases.exam_instance_id, 
-                        'stat':examCases.stat, 'confidence':str(examCases.confidence), 'ts': str(examCases.ts)}]}                   
+                        'stat':examCases.stat, 'confidence':str(examCases.confidence), 'ts': str(examCases.ts), 'student_number':examCases.student_number}]}                   
                         msg = 'Recent Case Retreived successfully'
                     status = 'success'
                 except KeyError:
