@@ -3,7 +3,6 @@ from threading import Thread
 import cv2
 import numpy as np
 import time
-import multiprocessing
 from skimage import data, feature
 from tensorflow import keras
 from keras.models import Sequential
@@ -41,12 +40,9 @@ class Utilities:
             x, y, w, h = int(box[0]), int(box[1]), int(box[2]), int(box[3])
             x = int(x * widthR)
             y = int(y * heightR)
-            w = int(w * widthR)
-            h = int(h * heightR)
+            w = int(w * widthR) * 2.5
+            h = int(h * heightR) * 1.2
             if classIDs[i] == 0:
-                classWithConf = 'Person - ' + str(int(confidenceVals[i] * 100)) + '%'
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 10)
-                cv2.putText(img, classWithConf, (x + 5, y - 10), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0))
                 finalLocations.append([x, y, w, h])
         return finalLocations
 
