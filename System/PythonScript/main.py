@@ -5,8 +5,10 @@ import numpy as np
 import time
 import multiprocessing
 from skimage import data, feature
+from tensorflow import keras
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D, Dropout, GlobalMaxPooling2D
+from keras.layers.advanced_activations import PReLU, LeakyReLU
 from keras.models import model_from_json
 import boto3
 import requests
@@ -93,17 +95,29 @@ class ProcessingStudent:
         for l in range(len(self.locations)):
             self.cheatingInstance.append(1)
 
-        # json_file = open('model.json', 'r')
-        # loaded_model_json = json_file.read()
-        # json_file.close()
-        # self.loaded_model = model_from_json(loaded_model_json)
-        # self.loaded_model.load_weights("model.h5")
-        # self.loaded_model.compile(loss = 'categorical_crossentropy', optimizer= 'adam', metrics = ['accuracy'])
+        self.loaded_model = keras.models.Sequential()
+        self.loaded_model = Sequential()
+        self.loaded_model.add(Conv2D(32, (4, 4), activation='relu', input_shape=(256, 256, 1)))
+        self.loaded_model.add(MaxPooling2D(pool_size=(2, 2)))
+        self.loaded_model.add(Dropout(0.25))
+        self.loaded_model.add(Conv2D(64, (3, 3), activation='relu'))
+        self.loaded_model.add(MaxPooling2D(pool_size=(2, 2)))
+        self.loaded_model.add(Dropout(0.25))
+        self.loaded_model.add(Flatten())
+        self.loaded_model.add(Dense(128, activation='relu'))
+        self.loaded_model.add(Dense(3, activation='softmax'))
+
+        self.loaded_model.load_weights("ModelHOG.h5")
+        self.loaded_model.compile(loss = 'categorical_crossentropy', optimizer= 'adam', metrics = ['accuracy'])
 
     def hog(self, image):
         hogImage = cv2.resize(image, (256, 256))
         hogImage = cv2.cvtColor(hogImage, cv2.COLOR_RGB2GRAY)
         hogVector, hogImage = feature.hog(hogImage, orientations=9, pixels_per_cell=(8, 8), cells_per_block=(2, 2), block_norm='L2', visualize=True)
+        hogImage = hogImage.reshape((1,) + hogImage.shape)
+        hogImage = np.transpose(hogImage)
+        hogImage = hogImage.reshape((1,) + hogImage.shape)
+        hogImage = np.asarray(hogImage)
         return hogImage
 
     def sendToDB(self, filePath, fileName):
@@ -123,30 +137,25 @@ class ProcessingStudent:
         for frame in frames:
             studentCrop = frame[int(Y - H / 2): int(Y - H / 2 + H), int(X - W / 2): int(X - W / 2 + W)]
             hogImage = self.hog(studentCrop)
-        #     confValues.append(np.argmax(self.loaded_model.predict(hogImage)))  #check this line again after training
-        #
-        # q75, q25 = np.percentile(confValues, [75, 25])
-        # iqr = q75 - q25
-        # low = q25 - (1.5 * iqr)
-        # up = q75 + (1.5 * iqr)
-        # filteredConfValues = []
-        # filteredConfIndeces = []
-        #
-        # for i in confValues:
-        #     if (i >= low) and (i <= up):
-        #         filteredConfValues.append(i)
-        #         filteredConfIndeces.append(confValues.index(i))
-        #
-        # avgConf = np.average(filteredConfValues)
-        #
-        # if(avgConf >= self.sensitivity):
-        #     fileName, self.cheatingInstance[studentNumber] = self.imwriteToJPG(frames[filteredConfIndeces[np.argmax(filteredConfValues)]], self.classInstance, studentNumber + 1, self.cheatingInstance[studentNumber])
-        #     self.sendToDB(fileName, fileName)
-        frame = frames[0]
-        studentCrop = frame[int(Y - H / 2): int(Y - H / 2 + H), int(X - W / 2): int(X - W / 2 + W)]
-        fileName, self.cheatingInstance[studentNumber] = self.imwriteToJPG(studentCrop, self.classInstance, studentNumber + 1, self.cheatingInstance[studentNumber])
-        self.sendToDB(fileName, fileName)
+            confValues.append(max(self.loaded_model.predict(hogImage)[0]))
 
+        q75, q25 = np.percentile(confValues, [75, 25])
+        iqr = q75 - q25
+        low = q25 - (1.5 * iqr)
+        up = q75 + (1.5 * iqr)
+        filteredConfValues = []
+        filteredConfIndeces = []
+
+        for i in confValues:
+            if (i >= low) and (i <= up):
+                filteredConfValues.append(i)
+                filteredConfIndeces.append(confValues.index(i))
+
+        avgConf = np.average(filteredConfValues)
+
+        if(avgConf >= self.sensitivity):
+            fileName, self.cheatingInstance[studentNumber] = self.imwriteToJPG(frames[filteredConfIndeces[np.argmax(filteredConfValues)]], self.classInstance, studentNumber + 1, self.cheatingInstance[studentNumber])
+            self.sendToDB(fileName, fileName)
 
     def runThreading(self, frames):
         studentThreads = []
