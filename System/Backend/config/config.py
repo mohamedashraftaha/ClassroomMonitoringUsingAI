@@ -6,3 +6,4 @@ access_key='AKIAWKAZELKAM5XLF574'
 secret_access_key='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'
 DEBUG = True
 FLASK_ENV = 'development'
+FLASK_ADMIN_SWATCH = 'cerulean'

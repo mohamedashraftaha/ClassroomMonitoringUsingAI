@@ -13,7 +13,7 @@ from botocore.client import Config
 from flask_cors import CORS, cross_origin
 from flask_restx import Api, fields, Resource
 from flask import Blueprint
-
+from flask_admin.contrib.fileadmin.s3 import S3FileAdmin
 from model.db_config import *
 # configuration of the app
 
@@ -30,6 +30,8 @@ userNamespace = api.namespace('api/user')
 app.config.from_pyfile('config/config.py')
 CORS(app, support_credentials=True)
 
+
+a = Admin(app, url = '/admin')
 # initialize database 
 db = dbInit(app)
 db.modelTables()    
