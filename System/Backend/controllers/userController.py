@@ -520,3 +520,82 @@ class UserLevelAPIs:
                     status = 'failed'
                     return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
                 return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+ ###############################################################################
+        @userNamespace.route('/check_exam_ended/<string:exam_instance_id>')
+        class get_fps(Resource):
+            def get(self, exam_instance_id):
+                """ @API Description: This API is used to check if the exam instance has finished """
+                status = None
+                msg = None
+                responseData = None
+                try:
+                    exam = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id=exam_instance_id).first()
+                    if exam is None:
+                        msg = 'Exam not found'
+                        status = 'failed'
+                        raise NotFound
+                    exam_instance_object = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id = exam_instance_id).first()
+                    if exam_instance_object.ended == 0 :
+                        msg = 'exam has NOT ended'
+                        status = 'success'
+                        responseData = json.loads(json.dumps('exam running'))
+                    else:
+                        msg = 'exam has ended'
+                        status = 'success'
+                        responseData = json.loads(json.dumps('exam ended'))
+
+                        
+                except KeyError:
+                    msg = 'an error has occured'
+                    status = 'failed'
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                except NotFound:
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+                except sqlalchemy.exc.IntegrityError as e:
+                    msg = 'or an error has occured'
+                    status = 'failed'
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+ ###############################################################################
+        @userNamespace.route('/end_exam/<string:exam_instance_id>')
+        class get_fps(Resource):
+            def get(self, exam_instance_id):
+                """ @API Description: This API is used to end exam session """
+                status = None
+                msg = None
+                responseData = None
+                try:
+                    exam = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id=exam_instance_id).first()
+                    if exam is None:
+                        msg = 'Exam not found'
+                        status = 'failed'
+                        raise NotFound
+                    exam_instance_object = db.classroom_monitoring_db.session.query(db.exam_instance).filter_by(exam_instance_id = exam_instance_id).first()
+                    if exam_instance_object.ended == 1 :
+                        msg = 'exam already ended'
+                        status = 'success'
+                        responseData = json.loads(json.dumps('exam already ended'))
+                        raise NotFound
+
+                    
+                    # if the exam is running
+                    
+                    
+                    db.classroom_monitoring_db.session.query(db.exam_instance).\
+                    filter_by(exam_instance_id=exam_instance_id).\
+                    update({'ended':1})
+                    db.classroom_monitoring_db.session.commit()
+                    msg = 'exam ended successfully'
+                    status = 'success'
+                    responseData = json.loads(json.dumps('exam ended successfully')) 
+                except KeyError:
+                    msg = 'an error has occured'
+                    status = 'failed'
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                except NotFound:
+                    return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))
+                except sqlalchemy.exc.IntegrityError as e:
+                    msg = 'or an error has occured'
+                    status = 'failed'
+                    return json.loads(json.dumps({'status': status, 'msg': msg,'data': responseData}))
+                return json.loads(json.dumps({'status': status, 'msg': msg, 'data': responseData}))

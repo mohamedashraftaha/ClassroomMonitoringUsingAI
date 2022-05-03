@@ -13,7 +13,10 @@ import boto3
 import requests
 import sys
 import getopt
+import socket
 
+hostname = socket.gethostname()
+local_ip = socket.gethostbyname(hostname)
 class Utilities:
     def findObjects(self, mOutputs, THRESH, SUP_THRESH):
         boundingBoxLocations = []
@@ -40,8 +43,8 @@ class Utilities:
             x, y, w, h = int(box[0]), int(box[1]), int(box[2]), int(box[3])
             x = int(x * widthR)
             y = int(y * heightR)
-            w = int(w * widthR) * 2.5
-            h = int(h * heightR) * 1.2
+            w = int(w * widthR)
+            h = int(h * heightR) 
             if classIDs[i] == 0:
                 finalLocations.append([x, y, w, h])
         return finalLocations
@@ -64,7 +67,7 @@ class Utilities:
         return finalLocationsInFrame
 
     def sendLocationsToDB(self, studentNumber, classInstance, X, Y, W, H):
-        url = "http://192.168.1.11:5000/api/user/add_students_locations"
+        url = f"https://classroommonitoring.herokuapp.com/api/user/add_students_locations"
         headers = {'accept': 'application/json', 'Content-Type': 'application/json'}
         data = {
             "student_number": studentNumber,
@@ -87,9 +90,9 @@ class ProcessingStudent:
         self.locations = locations
         self.sensitivity = sensitivity
         self.classInstance = classInstance
-        self.cheatingInstance = []
-        for l in range(len(self.locations)):
-            self.cheatingInstance.append(1)
+        self.cheatingInstance = 0
+        # for l in range(len(self.locations)):
+        #     self.cheatingInstance.append(1)
 
         self.loaded_model = keras.models.Sequential()
         self.loaded_model = Sequential()
@@ -117,6 +120,9 @@ class ProcessingStudent:
         return hogImage
 
     def sendToDB(self, filePath, fileName):
+ 
+        
+        
         client = boto3.client('s3', aws_access_key_id='AKIAWKAZELKAIHEHAREM', aws_secret_access_key='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')
         bucket = 'classroommonitoring'
         bucket_file_path = str(fileName)
@@ -130,8 +136,10 @@ class ProcessingStudent:
 
     def predict(self, frames, studentNumber, X, Y, W, H):
         confValues = []
+        studentCropImages = []
         for frame in frames:
             studentCrop = frame[int(Y - H / 2): int(Y - H / 2 + H), int(X - W / 2): int(X - W / 2 + W)]
+            studentCropImages.append(studentCrop)
             hogImage = self.hog(studentCrop)
             confValues.append(max(self.loaded_model.predict(hogImage)[0]))
 
@@ -148,10 +156,34 @@ class ProcessingStudent:
                 filteredConfIndeces.append(confValues.index(i))
 
         avgConf = np.average(filteredConfValues)
-
-        if(avgConf >= self.sensitivity):
-            fileName, self.cheatingInstance[studentNumber] = self.imwriteToJPG(frames[filteredConfIndeces[np.argmax(filteredConfValues)]], self.classInstance, studentNumber + 1, self.cheatingInstance[studentNumber])
+        print(avgConf, int(self.sensitivity)/100)
+        if(avgConf >= int(self.sensitivity)/100):
+            fileName, self.cheatingInstance = \
+            self.imwriteToJPG(studentCropImages[filteredConfIndeces[np.argmax(filteredConfValues)]], \
+            self.classInstance, studentNumber + 1, self.cheatingInstance)
             self.sendToDB(fileName, fileName)
+            print("Creating Case")
+            url ='https://classroommonitoring.herokuapp.com/api/user/create_possible_case'
+            headers = {'accept': 'application/json', 'Content-Type': 'application/json'}
+            
+            print (self.cheatingInstance,self.classInstance,studentNumber  + 1 ,str(avgConf) )
+            data = {
+                "case_id": self.cheatingInstance,
+                "exam_instance_id": self.classInstance,
+                "student_number": studentNumber + 1,
+                "stat": 'pending',
+                "confidence": str(avgConf)
+            }
+
+
+            response = requests.post(url, headers=headers, json=data)
+            if response.status_code == 200:
+                print("JSON Response ", response.json()['status'])
+                if response.json()['status'] != 'success':
+                    print("An error has occured", response.json())
+    
+                else:
+                    print("case created successfully")
 
     def runThreading(self, frames):
         studentThreads = []
@@ -195,6 +227,7 @@ def retrieveFrames(source):
 
 def yolo2sec():
     global frameCount
+    print("gwa yolo")
     start_time = time.time()
     maxLocations = utils.YOLO(Utilities, allImages[frameCount], YOLO_THRESH, YOLO_SUPPRESSION_THRESH)
     frameCount = frameCount + 1
@@ -240,9 +273,10 @@ def examVariables():
 
 if __name__ == "__main__":
     sensitivity, frameRate, classInstanceID = examVariables()
-    gatherFrames = Thread(target = retrieveFrames, args = ("/Users/marwanawad1/Desktop/HM_1.mp4",) )
+    gatherFrames = Thread(target = retrieveFrames, args = ("/home/cse-p07-g06f/Downloads/HM_3.mp4",) )
     gatherFrames.start()
 
+    print("Ay haga")
     time.sleep(0.5)
     studentLocations, frameCount = yolo2sec()
     print(studentLocations)
@@ -264,4 +298,3 @@ if __name__ == "__main__":
         frameCount = frameCount + 1
 
     gatherFrames.join()
-

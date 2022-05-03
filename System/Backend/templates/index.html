@@ -1,13 +1,49 @@
-<!DOCTYPE html>
-<html lang="no">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask - VGS</title>
+<title></title>
+<style type="text/css">
+#popupbox{
+margin: 0; 
+margin-left: 40%; 
+margin-right: 40%;
+margin-top: 50px; 
+padding-top: 10px; 
+width: 20%; 
+height: 150px; 
+position: absolute; 
+background: #FBFBF0; 
+border: solid #000000 2px; 
+z-index: 9; 
+font-family: arial; 
+visibility: hidden; 
+}
+</style>
+<script language="JavaScript" type="text/javascript">
+function login(showhide){
+if(showhide == "show"){
+    document.getElementById('popupbox').style.visibility="visible";
+}else if(showhide == "hide"){
+    document.getElementById('popupbox').style.visibility="hidden"; 
+}
+}
+</script>
 </head>
 <body>
-    <h1>Hallo, {{navn}}!</h1>
+
+<div id="popupbox"> 
+<form name="admin" action="" method="post">
+<center>Username:</center>
+<center><input name="username" size="14" /></center>
+<center>Password:</center>
+<center><input name="password" type="password" size="14" /></center>
+<center><input type="submit" name="submit" value="login" /></center>
+</form>
+<br />
+<center><a href="javascript:login('hide');">close</a></center> 
+</div> 
+
+<p><a href="javascript:login('show');">login</a></p>
 </body>
 </html>
-
