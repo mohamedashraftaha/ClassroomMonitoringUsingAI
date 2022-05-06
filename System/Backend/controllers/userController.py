@@ -277,17 +277,20 @@ class UserLevelAPIs:
                     cases = f"c{caseID}-{exam_instance_id}-{student_number}"
                     
                     '''Get the frames of the case and add them to the db'''
+                    
+                    """Check if the requested frame is already in the database"""
+                    frame_exist = db.classroom_monitoring_db.session.query(db.frames).filter(and_(db.frames.case_id==caseID, db.frames.exam_instance_id ==exam_instance_id)).first()
+                    if frame_exist != None:
+                        status = 'success'
+                        msg = 'frames retrieved successfully'
+                        framsesdata = db.classroom_monitoring_db.session.query(db.frames).filter(and_(db.frames.case_id==caseID, db.frames.exam_instance_id ==exam_instance_id)).first()
+                        urlList.append(framsesdata.image_link) 
+                        raise NotFound 
                     keys = [i.key for i in mybucket.objects.all()]
                     case_frames = [key for key in keys  if cases in key]
                     for i in range(len(case_frames)):
                         url = client.generate_presigned_url('get_object',Params={ 'Bucket': bucket, 'Key': case_frames[i] }, HttpMethod="GET",ExpiresIn=9800)   
                         urlList.append(url)
-                        frame_exist = db.classroom_monitoring_db.session.query(db.frames).filter(and_(db.frames.case_id==caseID, db.frames.exam_instance_id ==exam_instance_id)).first()
-                        if frame_exist != None:
-                            status = 'success'
-                            msg = 'frames retrieved successfully'
-                            urlList = urlList
-                            raise NotFound 
                         newframe=db.frames(image_link=url, case_id= caseID, exam_instance_id=exam_instance_id, student_number=student_number)
                         db.classroom_monitoring_db.session.add(newframe)
                         db.classroom_monitoring_db.session.commit()
