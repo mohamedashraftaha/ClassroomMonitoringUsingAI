@@ -1,3 +1,6 @@
+
+<--This is the schema for our database
+!>
 CREATE DATABASE db;
 use db;
 CREATE TABLE admin(
@@ -15,6 +18,7 @@ ts datetime default current_timestamp ,
 school_name VARCHAR(255) NOT NULL,
 admin_national_id VARCHAR(255) NOT NULL,
 camera_static_ip VARCHAR(255) NOT NULL,
+ended  bit(1)  NULL DEFAULT 0,
 fps int NOT NULL DEFAULT 30,
 FOREIGN KEY (admin_national_id) REFERENCES admin(national_id)
 ON UPDATE CASCADE ON DELETE CASCADE
@@ -83,8 +87,8 @@ ON UPDATE CASCADE ON DELETE CASCADE
 
 CREATE TABLE frames(
 image_link VARCHAR(512) NOT NULL PRIMARY KEY,
-case_id int ,
-student_number int,
+case_id int  NOT NULL,
+student_number int NOT NULL,
 exam_instance_id VARCHAR(255) NOT NULL,
 FOREIGN KEY (student_number) REFERENCES students_positions(student_number)
 ON UPDATE CASCADE ON DELETE CASCADE,

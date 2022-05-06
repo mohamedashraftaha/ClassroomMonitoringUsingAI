@@ -38,3 +38,6 @@ Flask-Admin==1.6.0
 boto
 flask_security
 waitress
+flask_httpauth
+Flask-JWT
+Flask-JWT

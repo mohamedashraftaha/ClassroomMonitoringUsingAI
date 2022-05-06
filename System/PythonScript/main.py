@@ -43,7 +43,7 @@ class Utilities:
             x, y, w, h = int(box[0]), int(box[1]), int(box[2]), int(box[3])
             x = int(x * widthR)
             y = int(y * heightR)
-            w = int(w * widthR)
+            w = int(w * widthR) *1.5
             h = int(h * heightR) 
             if classIDs[i] == 0:
                 finalLocations.append([x, y, w, h])
@@ -90,7 +90,7 @@ class ProcessingStudent:
         self.locations = locations
         self.sensitivity = sensitivity
         self.classInstance = classInstance
-        self.cheatingInstance = 0
+        self.cheatingInstance = 1
         # for l in range(len(self.locations)):
         #     self.cheatingInstance.append(1)
 
@@ -127,11 +127,18 @@ class ProcessingStudent:
         bucket = 'classroommonitoring'
         bucket_file_path = str(fileName)
         client.upload_file(filePath, bucket, bucket_file_path, ExtraArgs={'ACL': 'public-read', 'ContentType': 'image/jpeg'})
+        print(" ########## Case frame uploaded successfully ###################")
+
+
+        time.sleep(8)
+        print(" Waiting for next case ...")
 
     def imwriteToJPG(self, image, classInstance, studentNumber, studentsCheatingInstance):
         fileName = "c" + str(studentsCheatingInstance) + "-" + classInstance + "-" + str(studentNumber) + ".jpg"
         cv2.imwrite(fileName, image)
-        studentsCheatingInstance = studentsCheatingInstance + 1
+        time.sleep(0.5)
+        studentsCheatingInstance += 1
+        studentNumber+=1    
         return fileName, studentsCheatingInstance
 
     def predict(self, frames, studentNumber, X, Y, W, H):
@@ -158,20 +165,15 @@ class ProcessingStudent:
         avgConf = np.average(filteredConfValues)
         print(avgConf, int(self.sensitivity)/100)
         if(avgConf >= int(self.sensitivity)/100):
-            fileName, self.cheatingInstance = \
-            self.imwriteToJPG(studentCropImages[filteredConfIndeces[np.argmax(filteredConfValues)]], \
-            self.classInstance, studentNumber + 1, self.cheatingInstance)
-            self.sendToDB(fileName, fileName)
             print("Creating Case")
             url ='https://classroommonitoring.herokuapp.com/api/user/create_possible_case'
             headers = {'accept': 'application/json', 'Content-Type': 'application/json'}
-            
-            print (self.cheatingInstance,self.classInstance,studentNumber  + 1 ,str(avgConf) )
+            student_num  = studentNumber + 1 
+            print (self.cheatingInstance ,student_num   ,str(avgConf) )
             data = {
-                "case_id": self.cheatingInstance,
+                "case_id": self.cheatingInstance ,
                 "exam_instance_id": self.classInstance,
-                "student_number": studentNumber + 1,
-                "stat": 'pending',
+                "student_number": student_num,
                 "confidence": str(avgConf)
             }
 
@@ -184,6 +186,12 @@ class ProcessingStudent:
     
                 else:
                     print("case created successfully")
+                    
+            fileName, self.cheatingInstance = \
+            self.imwriteToJPG(studentCropImages[filteredConfIndeces[np.argmax(filteredConfValues)]], \
+            self.classInstance, student_num , self.cheatingInstance)
+            self.sendToDB(fileName, fileName)
+
 
     def runThreading(self, frames):
         studentThreads = []

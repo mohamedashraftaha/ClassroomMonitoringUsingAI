@@ -1,3 +1,5 @@
+''' Configurations for Swagger  '''
+
 template = {
     "swagger": "2.0",
     "info": {
@@ -5,10 +7,9 @@ template = {
         "description": "APIs",
         "contact": {
             "responsibleOrganization": "AUC",
-            "responsibleDeveloper": "Mohamed Ashraf - Omar Mahdy",
-            "email": "mohammedashraf@aucegypt.edu\
-                ,omarmahdy122@aucegypt.edu",
-            "url": "",
+            "responsibleDeveloper": "Mohamed Ashraf Taha",
+            "email": "mohammedashraf@aucegypt.edu",
+            "url": "/api",
         },
         "termsOfService": "",
         "version": "1.0"

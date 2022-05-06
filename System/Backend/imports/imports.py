@@ -15,4 +15,4 @@ from flask_cors import CORS, cross_origin
 from flask_restx import Api, fields, Resource
 from flask import Blueprint
 from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
+from flask_admin.contrib.sqla import ModelView  

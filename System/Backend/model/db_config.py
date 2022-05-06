@@ -1,6 +1,8 @@
 # imports all dependencies
 from flask_login import UserMixin
 from imports.imports import *
+
+
 # database configuration using ORM (object relation mapping)
 class dbInit(UserMixin):
     def __init__(self, application) -> None:
