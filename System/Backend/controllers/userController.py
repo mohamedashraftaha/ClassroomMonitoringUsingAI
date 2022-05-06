@@ -155,14 +155,14 @@ class UserLevelAPIs:
                    
                     # check if there exists a case with this id
                     case = db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
-                    filter_by(and_(db.exam_instance_cases.exam_instance_id==exam_instance_id,db.exam_instance_cases.case_id==caseID)).first()
+                    filter(and_(db.exam_instance_cases.exam_instance_id==exam_instance_id,db.exam_instance_cases.case_id==caseID)).first()
                     if case is None:
                         status = 'failed'
                         msg = 'case id not found'
                         raise NotFound
                     # update the status of the case to be not cheating
                     db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
-                    filter_by(and_(db.exam_instance_cases.exam_instance_id==exam_instance_id,db.exam_instance_cases.case_id==caseID)).\
+                    filter(and_(db.exam_instance_cases.exam_instance_id==exam_instance_id,db.exam_instance_cases.case_id==caseID)).\
                     update({'stat':'NC'})
                     db.classroom_monitoring_db.session.commit()                   
                     status = 'success'
@@ -209,7 +209,7 @@ class UserLevelAPIs:
                    
                    # check if there is a case with this id
                     case = db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
-                    filter_by(and_(db.exam_instance_cases.exam_instance_id==exam_instance_id,db.exam_instance_cases.case_id==caseID)).first()
+                    filter(and_(db.exam_instance_cases.exam_instance_id==exam_instance_id,db.exam_instance_cases.case_id==caseID)).first()
         
                     if case is None:
                         status = 'failed'
@@ -217,7 +217,7 @@ class UserLevelAPIs:
                         raise NotFound 
                      # update the status of the case to be cheating
                     db.classroom_monitoring_db.session.query(db.exam_instance_cases).\
-                    filter_by(and_(db.exam_instance_cases.exam_instance_id==exam_instance_id,db.exam_instance_cases.case_id==caseID)).\
+                    filter(and_(db.exam_instance_cases.exam_instance_id==exam_instance_id,db.exam_instance_cases.case_id==caseID)).\
                     update({'stat':'C'})
                     db.classroom_monitoring_db.session.commit()
                     status = 'success'
