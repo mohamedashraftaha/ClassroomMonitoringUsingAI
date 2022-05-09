@@ -14,6 +14,8 @@ import requests
 import sys
 import getopt
 import socket
+import mediapipe as mp
+import math
 
 hostname = socket.gethostname()
 local_ip = socket.gethostbyname(hostname)
@@ -43,8 +45,12 @@ class Utilities:
             x, y, w, h = int(box[0]), int(box[1]), int(box[2]), int(box[3])
             x = int(x * widthR)
             y = int(y * heightR)
-            w = int(w * widthR) *1.5
-            h = int(h * heightR) 
+            w = int(w * widthR)
+            h = int(h * heightR)
+            x = int(x - (w / 2))
+            y = int(y - (h / 5))
+            w = w * 2
+            h = int(h * 1.2)
             if classIDs[i] == 0:
                 finalLocations.append([x, y, w, h])
         return finalLocations
@@ -79,11 +85,13 @@ class Utilities:
         }
         response = requests.post(url, headers=headers, json=data)
         if response.status_code == 200:
-            print("JSON Response ", response.json()['status'])
+            #print("JSON Response ", response.json()['status'])
             if response.json()['status'] != 'success':
-                print("An error has occured")
+                pass
+#                print("An error has occured")
             else:
-                print("student added successfully")
+                pass
+#                print("student added successfully")
 
 class ProcessingStudent:
     def __init__(self, locations, sensitivity, classInstance):
@@ -104,10 +112,14 @@ class ProcessingStudent:
         self.loaded_model.add(Dropout(0.25))
         self.loaded_model.add(Flatten())
         self.loaded_model.add(Dense(128, activation='relu'))
-        self.loaded_model.add(Dense(3, activation='softmax'))
+        self.loaded_model.add(Dense(4, activation='softmax'))
 
-        self.loaded_model.load_weights("ModelHOG.h5")
+        self.loaded_model.load_weights("ModelHOG___Date_Time_2022_05_06__23_58_33___Loss_0.77988600730896___Accuracy_0.82666015625.h5")
         self.loaded_model.compile(loss = 'categorical_crossentropy', optimizer= 'adam', metrics = ['accuracy'])
+        
+        self.mp_pose = mp.solutions.pose
+        self.pose = self.mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
+        self.mp_drawing = self.mp.solutions.drawing_utils 
 
     def hog(self, image):
         hogImage = cv2.resize(image, (256, 256))
@@ -121,76 +133,119 @@ class ProcessingStudent:
 
     def sendToDB(self, filePath, fileName):
  
+        pass
         
-        
-        client = boto3.client('s3', aws_access_key_id='AKIAWKAZELKAIHEHAREM', aws_secret_access_key='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')
-        bucket = 'classroommonitoring'
-        bucket_file_path = str(fileName)
-        client.upload_file(filePath, bucket, bucket_file_path, ExtraArgs={'ACL': 'public-read', 'ContentType': 'image/jpeg'})
-        print(" ########## Case frame uploaded successfully ###################")
-
-
-        time.sleep(8)
-        print(" Waiting for next case ...")
+        # client = boto3.client('s3', aws_access_key_id='AKIAWKAZELKAIHEHAREM', aws_secret_access_key='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')
+        # bucket = 'classroommonitoring'
+        # bucket_file_path = str(fileName)
+        # client.upload_file(filePath, bucket, bucket_file_path, ExtraArgs={'ACL': 'public-read', 'ContentType': 'image/jpeg'})
+        # print(" ########## Case frame uploaded successfully ###################")
+        # time.sleep(8)
+        # #print(" Waiting for next case ...")
 
     def imwriteToJPG(self, image, classInstance, studentNumber, studentsCheatingInstance):
         fileName = "c" + str(studentsCheatingInstance) + "-" + classInstance + "-" + str(studentNumber) + ".jpg"
-        cv2.imwrite(fileName, image)
+        #cv2.imwrite(fileName, image)
+  #      print(type(image))
+        image_string = cv2.imencode('.jpg', image)[1].tostring()     
+        client = boto3.client('s3', aws_access_key_id='AKIAWKAZELKAIHEHAREM', aws_secret_access_key='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')
+        bucket = 'classroommonitoring'
+        client.put_object(Bucket=bucket, Key = fileName, Body =image_string, ContentType= 'image/jpeg', ACL= 'public-read') 
+        print("Frame uploaded")
+        print(" ########## Case frame uploaded successfully ###################")
+        time.sleep(8)
         time.sleep(0.5)
         studentsCheatingInstance += 1
         studentNumber+=1    
         return fileName, studentsCheatingInstance
 
+    def detectPose(self, image):
+        output_image = image.copy()
+        imageRGB = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)
+        results = self.pose.process(imageRGB)
+        landmarks = []
+        if results.pose_landmarks:
+                self.mp_drawing.draw_landmarks(output_image, landmark_list=results.pose_landmarks, connections = self.mp_pose.POSE_CONNECTIONS)
+                height, width, _ = image.shape
+                for landmark in results.pose_landmarks.landmark:
+                    landmarks.append((int(landmark.x * width), int(landmark.y * height)))
+        return landmarks
+
+    def calcDistance(self, noseLandmark, leftLandmark, rightLandmark):
+        x1, y1, _ = noseLandmark 
+        x2, y2, _ = leftLandmark
+        x3, y3, _ = rightLandmark 
+        distance = math.sqrt( (x1 - x2) ** 2 + (y1 - y2) ** 2)
+        distance2 = math.sqrt( (x1 - x3) ** 2 + (y1 - y3) ** 2)
+        return abs(distance-distance2)
+
+
+    def mediaPipe(self, image):
+        landmarks = self.detectPose(image)
+        landmarks[self.mp_pose.PoseLandmark.NOSE.value], landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value], landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+        distance = self.calcDistance(landmarks[self.mp_pose.PoseLandmark.NOSE.value],landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value] , landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value])
+        if(distance > 110):
+            return True
+        else:
+            return False
+
     def predict(self, frames, studentNumber, X, Y, W, H):
+        
         confValues = []
         studentCropImages = []
         for frame in frames:
             studentCrop = frame[int(Y - H / 2): int(Y - H / 2 + H), int(X - W / 2): int(X - W / 2 + W)]
             studentCropImages.append(studentCrop)
-            hogImage = self.hog(studentCrop)
-            confValues.append(max(self.loaded_model.predict(hogImage)[0]))
+            if(self.mediaPipe(studentCrop)):
+                confValues.append(0.9)
+            else:
+                hogImage = self.hog(studentCrop)
+                pred = (self.loaded_model.predict(hogImage)[0][0:2])
+                maxClass = max(pred)
+                confValues.append(maxClass)
 
-        q75, q25 = np.percentile(confValues, [75, 25])
-        iqr = q75 - q25
-        low = q25 - (1.5 * iqr)
-        up = q75 + (1.5 * iqr)
-        filteredConfValues = []
-        filteredConfIndeces = []
+        if confValues:
+            q75, q25 = np.percentile(confValues, [75, 25])
+            iqr = q75 - q25
+            low = q25 - (1.5 * iqr)
+            up = q75 + (1.5 * iqr)
+            filteredConfValues = []
+            filteredConfIndeces = []
+            for i in confValues:
+                #print("modelpred ",i, "  model pred  ")
+                if (i >= low) and (i <= up):
+                    filteredConfValues.append(i)
+                    filteredConfIndeces.append(confValues.index(i))
 
-        for i in confValues:
-            if (i >= low) and (i <= up):
-                filteredConfValues.append(i)
-                filteredConfIndeces.append(confValues.index(i))
-
-        avgConf = np.average(filteredConfValues)
-        print(avgConf, int(self.sensitivity)/100)
-        if(avgConf >= int(self.sensitivity)/100):
-            print("Creating Case")
-            url ='https://classroommonitoring.herokuapp.com/api/user/create_possible_case'
-            headers = {'accept': 'application/json', 'Content-Type': 'application/json'}
-            student_num  = studentNumber + 1 
-            print (self.cheatingInstance ,student_num   ,str(avgConf) )
-            data = {
-                "case_id": self.cheatingInstance ,
-                "exam_instance_id": self.classInstance,
-                "student_number": student_num,
-                "confidence": str(avgConf)
-            }
+            avgConf = np.average(filteredConfValues)
+            #print(avgConf, int(self.sensitivity)/100)
+            if(avgConf >= int(self.sensitivity)/100):
+                print("Creating Case")
+                url ='https://classroommonitoring.herokuapp.com/api/user/create_possible_case'
+                headers = {'accept': 'application/json', 'Content-Type': 'application/json'}
+                student_num  = studentNumber + 1 
+                print (self.cheatingInstance ,student_num   ,str(avgConf) )
+                data = {
+                    "case_id": self.cheatingInstance ,
+                    "exam_instance_id": self.classInstance,
+                    "student_number": student_num,
+                    "confidence": str(avgConf)
+                }
 
 
-            response = requests.post(url, headers=headers, json=data)
-            if response.status_code == 200:
-                print("JSON Response ", response.json()['status'])
-                if response.json()['status'] != 'success':
-                    print("An error has occured", response.json())
-    
-                else:
-                    print("case created successfully")
-                    
-            fileName, self.cheatingInstance = \
-            self.imwriteToJPG(studentCropImages[filteredConfIndeces[np.argmax(filteredConfValues)]], \
-            self.classInstance, student_num , self.cheatingInstance)
-            self.sendToDB(fileName, fileName)
+                response = requests.post(url, headers=headers, json=data)
+                if response.status_code == 200:
+                    print("JSON Response ", response.json()['status'])
+                    if response.json()['status'] != 'success':
+                        print("An error has occured", response.json())
+        
+                    else:
+                        print("case created successfully")
+                        
+                fileName, self.cheatingInstance = \
+                self.imwriteToJPG(studentCropImages[filteredConfIndeces[np.argmax(filteredConfValues)]], \
+                self.classInstance, student_num , self.cheatingInstance)
+            #  self.sendToDB(fileName, fileName)
 
 
     def runThreading(self, frames):
@@ -232,6 +287,7 @@ def retrieveFrames(source):
             break
     feedEnd = True;
     print("done")
+    print(len(allImages))
 
 def yolo2sec():
     global frameCount
@@ -287,7 +343,7 @@ if __name__ == "__main__":
     print("Ay haga")
     time.sleep(0.5)
     studentLocations, frameCount = yolo2sec()
-    print(studentLocations)
+    print("STUDENT LOCATIONS",studentLocations)
 
     for l in studentLocations:
         utils.sendLocationsToDB(Utilities, (studentLocations.index(l) + 1), classInstanceID, l[0], [1], l[2], l[3])
@@ -296,10 +352,15 @@ if __name__ == "__main__":
     frameCount = frameCount + frameRate
 
     while(True):
-        check = feedEnd is True and frameCount == len(allImages)
+        check = feedEnd is True and frameCount >= len(allImages)
+      #  print(frameCount, check, sep='\t')
         if check is True:
+            response = requests.get(f"https://classroommonitoring.herokuapp.com/api/user/end_exam/{exam_instance_id}")
+            print(response.json())
+            print(response.json()['data'])
+            if (response.json()['data'] == "exam ended successfully"):
+                break
             break
-
         if(frameCount % frameRate == 0):
             # processing.runThreading(allImages[frameCount - frameRate: frameCount])
             processing.runSequential(allImages[frameCount - frameRate: frameCount])
