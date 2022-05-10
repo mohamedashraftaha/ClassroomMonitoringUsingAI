@@ -164,7 +164,7 @@ class AdminLevelAPIs:
                     # else admin is found
                     # add to data base
                     newRoom = db.exam_instance(exam_instance_id = examInstanceID, exam_reference_code= examRefCode, school_name=SchoolName,\
-                        admin_national_id = adminNatID, camera_static_ip= camera_static_ip)
+                        admin_national_id = adminNatID, camera_static_ip= camera_static_ip, ended=0)
                     db.classroom_monitoring_db.session.add(newRoom)
                     db.classroom_monitoring_db.session.commit()
                 
