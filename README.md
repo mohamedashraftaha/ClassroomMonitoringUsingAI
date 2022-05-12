@@ -47,7 +47,7 @@ Department of Computer Science and Engineering
 
 ## System Workflow
 
-![systemWorkflow drawio](https://user-images.githubusercontent.com/75078872/165160857-1dfc9138-f4d7-4527-8351-b1121b8b3656.svg)
+![systemWorkflow drawio(3)](https://user-images.githubusercontent.com/75078872/168029579-42157eed-4653-475b-9e5b-78ae81b26849.png)
 
 
 
