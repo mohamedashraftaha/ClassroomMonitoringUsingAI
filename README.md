@@ -60,6 +60,17 @@ Department of Computer Science and Engineering
 [SystemCommunicationDiagram.drawio.pdf](https://github.com/mohamedashraftaha/ClassroomMonitoringUsingAI/files/8557313/SystemCommunicationDiagram.drawio.pdf)
 
 ## Frontend
+The system’s front end has been designed to fulfill the users’ needs by developing multiple UI/UX designs before starting the development process. In addition to building a system design to effectively communicate with the system’s backend represented in the database and the Application Programming Interfaces (APIs) connecting it. 
+The software is a cross-platform desktop application that supports multiple operating systems: Linux, macOS, and Microsoft Windows. ElectronJS is a JavaScript framework that uses web development technologies such as HTML5, CSS3, Bootstrap 5, and JavaScript. It has been used to build cross-platform desktop applications and has been chosen to be the frontend development framework for our software, as it has high performance on different platforms, in addition to a smooth and quick development process due to having one code base for the three supported operating systems. 
+The software consists of  7 frontend interfaces that communicate with a total of 9 Application Programming interfaces (APIs). The frontend interfaces are as follows:
+
+* Software Landing Page.
+* User Login Page.
+* Assigned Exam Details Page.
+* Exam Sensitivity Page.
+* Main Home Page.
+* End of Exam Report Page.
+* User Logout Page.
 
 ## Backend
 
