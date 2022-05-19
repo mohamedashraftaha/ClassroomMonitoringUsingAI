@@ -1,9 +1,9 @@
 '''All the necessary configuration for our APIs'''
-SQLALCHEMY_DATABASE_URI = 'mysql://remoteuser:yolo1234@54.162.123.217:3306/db'
+SQLALCHEMY_DATABASE_URI = 'mysql://remoteuser:********@54.162.123.217:3306/db'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-SECRET_KEY = 'd2d57ba013a901f490d378e4c388a9dc731a699aad42539d41969b363d06bb45'
-access_key='AKIAWKAZELKAM5XLF574'
-secret_access_key='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'
+SECRET_KEY = '************************************************'
+access_key='************************************************'
+secret_access_key='****************************************'
 DEBUG = False
 FLASK_ENV = 'PRODUCTION'
 FLASK_ADMIN_SWATCH = 'cerulean'
