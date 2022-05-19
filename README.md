@@ -123,7 +123,8 @@ The software consists of  7 frontend interfaces that communicate with a total of
 ## Model
 
 
-  
+  <img width="956" alt="image" src="https://user-images.githubusercontent.com/49607596/169382113-4274b076-f1a1-4660-9ed6-a5ac16f85b53.png">
+
 
 
    
