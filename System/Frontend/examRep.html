@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VProctor</title>
+    <link rel="stylesheet" href="examRep.css" />
+  </head>
+  <body>
+    <!-- <table id="cTable" rules="all">
+           <thead>
+               <tr>
+                   <th>Case ID</th>
+                   <th>Exam Instance ID</th>
+                   <th>Status</th>
+                   <th>Model Confidence</th>
+                   <th>Time Stamp</th>
+                   <th>Student Number</th>
+                   <th>Frame Link</th>
+               </tr>
+           </thead>
+
+           <tbody id="data-output">
+               <tr>
+                   <td>fs</td>
+                   <td>vsf</td>
+                   <td>ra</td>
+                   <td>qwr</td>
+                   <td>gfd</td>
+                   <td>qeq</td>
+                   <td>pof</td>
+               </tr>
+
+           </tbody>
+        </table> -->
+        <!-- Page green header -->
+    <div id="head"></div>
+<!-- Page title and information about the report -->
+    <div id="info">
+      <h2 id="title">End of Exam Report</h2>
+      <strong>
+        <p id="ERInfo">
+          The End of Exam Report Shows all Cases That Have Been Reproted or
+          Dismissed By The Proctor During The Exam Session
+        </p>
+        <br />
+        <p style="color: red" id="ERInfo">C = Cheating</p>
+        <p style="color: rgb(59, 106, 28); padding-bottom: 10px" id="ERInfo">
+          NC = Not Cheating
+        </p>
+      </strong>
+      <button id="logProct">Logout</button>
+
+      <hr style="width: 75%; margin: auto" />
+    </div>
+<!-- Image popup  -->
+    <div id="shad" class="shad">
+      <img
+
+        class="imagePopup"
+        id="imagePopup"
+      />
+      <!-- Flex box for exam reprot table  -->
+      <div id="center" style="display: flex; justify-content: center">
+        <p id="cent">
+          <strong>CaseID</strong>
+        </p>
+        <p id="cent2">
+          <strong>ExamID</strong>
+        </p>
+        <p id="cent3">
+          <strong>Status</strong>
+        </p>
+        <p id="cent4">
+          <strong>Confidence</strong>
+        </p>
+        <p id="cent5">
+          <strong>Time Stamp</strong>
+        </p>
+        <p id="cent6">
+          <strong>Student Number</strong>
+        </p>
+        <p id="cent7">
+          <strong>Case Image</strong>
+          <br />
+        </p>
+      </div>
+    </div>
+<!-- Add js script -->
+    <script src="examRep.js"></script>
+  </body>
+</html>

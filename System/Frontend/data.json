@@ -1,0 +1,5 @@
+{
+    "data": ["c1-1.jpg","c1-2.jpg","c1-3.jpg"], 
+    "msg": "frames retrieved successfully", 
+    "status": "success"
+  }

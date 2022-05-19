@@ -1,0 +1,78 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Classroom Monitoring System - Main Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.8.0/addons/p5.dom.min.js"></script>
+    <script src="https://unpkg.com/ml5@0.3.1/dist/ml5.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- <script src="mainPage.js"></script> -->
+    <link href="mainPage.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <h2>Monitoring Panel</h2>
+
+    <!-- <p id="status">Loading Model...</p> -->
+    <!-- <a href="logOut.html"> -->
+    <!-- </a> -->
+    <!-- class="show_button" -->
+
+    
+    <!-- <label for="check"> -->
+      <!-- notification toast -->
+    <label for="check">
+      <div id="toast" class="toast">
+        <div class="toast-content">
+          <i class="fas fa-solid fa-check check"></i>
+<!-- notification message -->
+          <div class="message">
+            <span class="text text-1">New Case Alert</span>
+            <span id="cid" class="text text-2">New Possible Case</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-xmark close" id="closeNot"></i>
+
+        <div class="progress"></div>
+      </div>
+    </label>
+<!-- video class feed -->
+    <video id="Vfeed" width="840" height="880" playsinline autoplay muted loop>
+      <source id="videoSource" src="t11.mp4" type="video/mp4" />
+
+      Your browser does not support the video tag.
+    </video>
+    <div class="container">
+      <input class="checkbox1" type="checkbox" id="check" /> 
+      <!-- <label class="show_button" for="check">Click Me</label> -->
+      <!-- <div class="background"></div> -->
+
+<!-- alert box containg case image and option to dismiss or report -->
+      <div id="box" class="alert_box">
+        <!-- <img id="close1" src="close.png" /> -->
+        <div class="icon">
+          <img id="case" />
+        </div>
+        <header id="head">Possible Cheating Incident</header>
+        <p id="sel">Please select a decision for this incident</p>
+        <div class="btns">
+          <label id="dis" for="check">Dismiss</label>
+          <label id="rep" for="check">Report</label>
+        </div>
+      </div>
+    </div>
+    <!-- <script src="sketch.js"></script> -->
+    <p id="time">Time</p>
+
+    <!-- <a href="logOut.html"> -->
+      <button id="endSession">End Session</button>
+    <!-- </a> -->
+    <script src="mainPage.js"></script>
+  </body>
+</html>

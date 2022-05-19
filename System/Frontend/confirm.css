@@ -1,0 +1,161 @@
+/* Styling of Confirmation Page */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@700&family=Poppins:wght@400;500;600&display=swap');
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body{
+    
+  background: linear-gradient(
+    to right, 
+    #ffffff 0%, 
+    #ffffff 50%, 
+    #2a7c6f 50%, 
+    #2a7c6f 100%
+  );
+    width: 50% ;
+    height: 100%; 
+    overflow:hidden;
+  }
+
+  h2{
+
+    text-align: left;
+    padding-top: 60px;
+    padding-left: 230px;
+    color:#2a7c6f;
+  }
+
+  #info{
+
+    position: absolute;
+    top: 20%;
+    text-align: center;
+    left: 50%;
+
+    transform: translate(40%, 120%);
+    width: 400px;
+    color: #ffffff;
+
+  }
+  #p2{
+      font-size: 12px;
+
+  }
+
+  #confirm_but
+  {
+      margin-top: 60px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.23);
+      color: white;
+      padding-top:8px;
+      padding-left: 50px;
+      font-weight: 800px;
+      padding-bottom: 8px;
+      padding-right: 50px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0px 8px 15px rgba(11, 94, 211, 0.1);
+
+
+  }
+  #details{
+
+    position: absolute;
+    top: 50%;
+    text-align: center;
+    left: 50%;
+    transform: translate(-140%, -50%);
+    width: 400px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 8px 15px rgba(11, 94, 211, 0.1);
+
+    /* box-shadow: 10px 10px 15px rgba(0,0,0,0.05); */
+  }
+  #details2{
+
+    position: absolute;
+    top: 60%;
+    text-align: center;
+    left: 50%;
+    transform: translate(-140%, -50%);
+    width: 400px;
+    background: white;
+    border-radius: 10px;
+    
+    box-shadow: 0px 8px 15px rgba(11, 94, 211, 0.1);
+
+    /* box-shadow: 10px 10px 15px rgba(0,0,0,0.05); */
+  }
+
+  #details3{
+
+    position: absolute;
+    top: 60%;
+    text-align: center;
+    left: 50%;
+    transform: translate(-140%, -50%);
+    width: 400px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 8px 15px rgba(11, 94, 211, 0.1);
+
+    /* box-shadow: 10px 10px 15px rgba(0,0,0,0.05); */
+  }
+
+
+  #details4{
+
+    position: absolute;
+    top: 70%;
+    text-align: center;
+    left: 50%;
+    transform: translate(-140%, -50%);
+    width: 400px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 8px 8px 15px rgba(11, 94, 211, 0.1);
+
+    /* box-shadow: 10px 10px 15px rgba(0,0,0,0.05); */
+  }
+
+  #li1{
+list-style-image: url('inst.png');
+    position: absolute;
+    top: 46%;
+    text-align: center;
+    color:#2a7c6f;
+
+    left: 50%;
+    transform: translate(-140%, -50%);
+    width: 400px;
+  
+  }
+
+  #li2{
+    list-style-image: url('subj.png');
+        position: absolute;
+        top: 56%;
+        color:#2a7c6f;
+        text-align: center;
+        left: 50%;
+        transform: translate(-140%, -50%);
+        width: 400px;
+      }
+
+      #li3{
+        list-style-image: url('camera.png');
+            position: absolute;
+            top: 66%;
+            text-align: center;
+            color:#2a7c6f;
+
+            left: 50%;
+            transform: translate(-140%, -50%);
+            width: 400px;
+          }

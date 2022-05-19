@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Classroom Monitioring System</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <link rel="stylesheet" href="loginStyle.css" >
+</head>
+<body>
+  <!-- <img src="login.png"> -->
+<!-- Header of login page -->
+ <div id="head">
+    <div class="center">
+      <!-- Page title -->
+        <h1>Login Portal</h1>
+        <div id="test"></div>
+        <!-- Login form -->
+        <form>
+          <div class="txt_field">
+            <input type="text"  required id="userID">
+            <!-- <span></span> -->
+            <label>User ID </label>
+          </div>
+          <div class="txt_field">
+            <input type="password" required id="password">
+            <label>Password</label>
+          </div>
+          <!-- Loading spinner -->
+          <div class="submitCTA">
+            <div id="loader" class="loader"></div>
+            <input type="submit" value="Login" id="submit" >
+          </div>
+            
+        </form>
+      </div>
+    </div>
+    <!-- Add js script -->
+      <script  src="login.js" defer></script>
+</body>
+
+</html>

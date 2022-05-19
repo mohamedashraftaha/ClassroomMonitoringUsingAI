@@ -1,0 +1,20 @@
+{
+  "name": "cmsystem",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^17.1.0"
+  },
+  "dependencies": {
+    "electron-packager": "^15.5.1",
+    "node-fetch": "^3.2.3",
+    "npm-fetch": "^0.0.9"
+  }
+}
