@@ -1,3 +1,4 @@
+from asyncio import constants
 import os
 from threading import Thread
 import cv2
@@ -31,7 +32,7 @@ class Utilities:
                 conf = classProbs[class_id]
                 if conf > THRESH:
                     w, h = int(prediction[2] * 320), int(prediction[3] * 320)
-                    x, y = int((prediction[0] * 320) - w / 2), int((prediction[1] * 320) - h / 2)
+                    x, y = int((prediction[0] * 320) - w/2), int((prediction[1] * 320)-h/2)
                     boundingBoxLocations.append([x, y, w, h])
                     confidence.append(float(conf))
                     classes.append(class_id)
@@ -119,7 +120,7 @@ class ProcessingStudent:
         
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
-        self.mp_drawing = self.mp.solutions.drawing_utils 
+        self.mp_drawing = mp.solutions.drawing_utils 
 
     def hog(self, image):
         hogImage = cv2.resize(image, (256, 256))
@@ -145,36 +146,36 @@ class ProcessingStudent:
 
     def imwriteToJPG(self, image, classInstance, studentNumber, studentsCheatingInstance):
         fileName = "c" + str(studentsCheatingInstance) + "-" + classInstance + "-" + str(studentNumber) + ".jpg"
-        #cv2.imwrite(fileName, image)
-  #      print(type(image))
+  #      cv2.imwrite(fileName, image)
+        print(type(image))
         image_string = cv2.imencode('.jpg', image)[1].tostring()     
         client = boto3.client('s3', aws_access_key_id='AKIAWKAZELKAIHEHAREM', aws_secret_access_key='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')
         bucket = 'classroommonitoring'
         client.put_object(Bucket=bucket, Key = fileName, Body =image_string, ContentType= 'image/jpeg', ACL= 'public-read') 
-        print("Frame uploaded")
+        # print("Frame uploaded")
         print(" ########## Case frame uploaded successfully ###################")
-        time.sleep(8)
+     #   time.sleep(8)
         time.sleep(0.5)
         studentsCheatingInstance += 1
         studentNumber+=1    
         return fileName, studentsCheatingInstance
 
     def detectPose(self, image):
-        output_image = image.copy()
-        imageRGB = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)
+
+        imageRGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         results = self.pose.process(imageRGB)
         landmarks = []
         if results.pose_landmarks:
-                self.mp_drawing.draw_landmarks(output_image, landmark_list=results.pose_landmarks, connections = self.mp_pose.POSE_CONNECTIONS)
+             #   self.mp_drawing.draw_landmarks(output_image, landmark_list=results.pose_landmarks, connections = self.mp_pose.POSE_CONNECTIONS)
                 height, width, _ = image.shape
                 for landmark in results.pose_landmarks.landmark:
                     landmarks.append((int(landmark.x * width), int(landmark.y * height)))
         return landmarks
 
     def calcDistance(self, noseLandmark, leftLandmark, rightLandmark):
-        x1, y1, _ = noseLandmark 
-        x2, y2, _ = leftLandmark
-        x3, y3, _ = rightLandmark 
+        x1, y1= noseLandmark 
+        x2, y2= leftLandmark
+        x3, y3= rightLandmark 
         distance = math.sqrt( (x1 - x2) ** 2 + (y1 - y2) ** 2)
         distance2 = math.sqrt( (x1 - x3) ** 2 + (y1 - y3) ** 2)
         return abs(distance-distance2)
@@ -182,28 +183,34 @@ class ProcessingStudent:
 
     def mediaPipe(self, image):
         landmarks = self.detectPose(image)
-        landmarks[self.mp_pose.PoseLandmark.NOSE.value], landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value], landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
-        distance = self.calcDistance(landmarks[self.mp_pose.PoseLandmark.NOSE.value],landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value] , landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value])
-        if(distance > 110):
-            return True
+        if landmarks:
+            distance = self.calcDistance(landmarks[self.mp_pose.PoseLandmark.NOSE.value],landmarks[self.mp_pose.PoseLandmark.LEFT_SHOULDER.value] , landmarks[self.mp_pose.PoseLandmark.RIGHT_SHOULDER.value])
+            print('distance', distance)
+            if(distance > 75):
+                return True, distance
+            else:
+                return False, distance
         else:
-            return False
+            return False, 0
 
     def predict(self, frames, studentNumber, X, Y, W, H):
         
         confValues = []
+        distances = []
         studentCropImages = []
         for frame in frames:
-            studentCrop = frame[int(Y - H / 2): int(Y - H / 2 + H), int(X - W / 2): int(X - W / 2 + W)]
+            studentCrop = frame[int(Y): int(Y + H), int(X): int(X + W)]
             studentCropImages.append(studentCrop)
-            if(self.mediaPipe(studentCrop)):
-                confValues.append(0.9)
+            flagMP, distance = self.mediaPipe(studentCrop)
+            if(flagMP):
+                distances.append(distance/100)
+                confValues.append(1)
             else:
                 hogImage = self.hog(studentCrop)
-                pred = (self.loaded_model.predict(hogImage)[0][0:2])
+                pred = (self.loaded_model.predict(hogImage)[0][0:3])
                 maxClass = max(pred)
                 confValues.append(maxClass)
-
+    #    print("Student Number: ", studentNumber)
         if confValues:
             q75, q25 = np.percentile(confValues, [75, 25])
             iqr = q75 - q25
@@ -216,20 +223,19 @@ class ProcessingStudent:
                 if (i >= low) and (i <= up):
                     filteredConfValues.append(i)
                     filteredConfIndeces.append(confValues.index(i))
-
+            confValues = np.asarray(confValues)
             avgConf = np.average(filteredConfValues)
-            #print(avgConf, int(self.sensitivity)/100)
-            if(avgConf >= int(self.sensitivity)/100):
+            if(avgConf >= 0.05):
                 print("Creating Case")
                 url ='https://classroommonitoring.herokuapp.com/api/user/create_possible_case'
                 headers = {'accept': 'application/json', 'Content-Type': 'application/json'}
                 student_num  = studentNumber + 1 
-                print (self.cheatingInstance ,student_num   ,str(avgConf) )
+                print (self.cheatingInstance ,student_num   ,str(sum) )
                 data = {
                     "case_id": self.cheatingInstance ,
                     "exam_instance_id": self.classInstance,
                     "student_number": student_num,
-                    "confidence": str(avgConf)
+                    "confidence": str(sum)
                 }
 
 
@@ -242,8 +248,9 @@ class ProcessingStudent:
                     else:
                         print("case created successfully")
                         
+                # print(distances.index(max(distances)))        
                 fileName, self.cheatingInstance = \
-                self.imwriteToJPG(studentCropImages[filteredConfIndeces[np.argmax(filteredConfValues)]], \
+                self.imwriteToJPG(studentCropImages[distances.index(max(distances))], \
                 self.classInstance, student_num , self.cheatingInstance)
             #  self.sendToDB(fileName, fileName)
 
@@ -269,8 +276,8 @@ classInstanceID = None
 ########################################################################################################################
 utils = Utilities
 
-YOLO_THRESH = 0.2
-YOLO_SUPPRESSION_THRESH = 0.4
+YOLO_THRESH = 0.1
+YOLO_SUPPRESSION_THRESH = 0.1
 
 feedEnd = False
 allImages = []
@@ -286,15 +293,24 @@ def retrieveFrames(source):
         else:
             break
     feedEnd = True;
-    print("done")
-    print(len(allImages))
+    # print("done")
+    # print(len(allImages))
 
-def yolo2sec():
+def yolo2sec(frameRate):
     global frameCount
-    print("gwa yolo")
+    print("Yolo Running")
+    frameInit = frameCount
     start_time = time.time()
-    maxLocations = utils.YOLO(Utilities, allImages[frameCount], YOLO_THRESH, YOLO_SUPPRESSION_THRESH)
-    frameCount = frameCount + 1
+    maxLocations = []
+    while(frameCount < frameRate * 2):
+        if(frameRate % frameRate) == 0:
+            tempLocations = utils.YOLO(Utilities, allImages[frameCount], YOLO_THRESH, YOLO_SUPPRESSION_THRESH)
+            if(len(tempLocations) > len(maxLocations)):
+                maxLocations = tempLocations
+        frameCount = frameCount + 1
+
+    duration = time.time() - start_time
+#    frameCount = frameInit + (frameRate * int(duration))
     print("--- %s seconds ---" % (time.time() - start_time))
     return maxLocations, frameCount
 
@@ -306,7 +322,7 @@ def examVariables():
     fps = None
     argv = sys.argv[1:]
     try:
-        opts, args = getopt.getopt(argv, 's:e:')
+        opts, args = getopt.getopt(argv, 's:e:v:')
     except getopt.GetoptError as e:
         # Print a message or do something useful
         print(e)
@@ -337,13 +353,13 @@ def examVariables():
 
 if __name__ == "__main__":
     sensitivity, frameRate, classInstanceID = examVariables()
-    gatherFrames = Thread(target = retrieveFrames, args = ("/home/cse-p07-g06f/Downloads/HM_3.mp4",) )
+    frameRate=frameRate
+    gatherFrames = Thread(target = retrieveFrames, args = ("/home/cse-p07-g06f/Downloads/t12.mp4",) )
     gatherFrames.start()
 
-    print("Ay haga")
-    time.sleep(0.5)
-    studentLocations, frameCount = yolo2sec()
-    print("STUDENT LOCATIONS",studentLocations)
+    time.sleep(1)
+    studentLocations, frameCount = yolo2sec(frameRate)
+    print("Students Found: ",len(studentLocations))
 
     for l in studentLocations:
         utils.sendLocationsToDB(Utilities, (studentLocations.index(l) + 1), classInstanceID, l[0], [1], l[2], l[3])
@@ -355,15 +371,15 @@ if __name__ == "__main__":
         check = feedEnd is True and frameCount >= len(allImages)
       #  print(frameCount, check, sep='\t')
         if check is True:
-            response = requests.get(f"https://classroommonitoring.herokuapp.com/api/user/end_exam/{exam_instance_id}")
-            print(response.json())
-            print(response.json()['data'])
-            if (response.json()['data'] == "exam ended successfully"):
-                break
             break
-        if(frameCount % frameRate == 0):
+        response = requests.get(f"https://classroommonitoring.herokuapp.com/api/user/check_exam_ended/{classInstanceID}")
+      #  print(response.json())
+      #  print(response.json()['data'])
+        if (response.json()['data'] == "exam ended"):
+            break
+        if(frameCount % (frameRate) == 0):
             # processing.runThreading(allImages[frameCount - frameRate: frameCount])
-            processing.runSequential(allImages[frameCount - frameRate: frameCount])
+            processing.runSequential(allImages[frameCount - (frameRate): frameCount])
         frameCount = frameCount + 1
 
     gatherFrames.join()
